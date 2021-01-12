@@ -102,6 +102,7 @@ Contents:
    install
    code
    about
+   modules
 
 
 Indices and tables

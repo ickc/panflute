@@ -1,0 +1,7 @@
+panflute.version module
+=======================
+
+.. automodule:: panflute.version
+   :members:
+   :undoc-members:
+   :show-inheritance:

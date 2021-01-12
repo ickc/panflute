@@ -1,0 +1,7 @@
+panflute.elements module
+========================
+
+.. automodule:: panflute.elements
+   :members:
+   :undoc-members:
+   :show-inheritance:

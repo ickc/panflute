@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panflute: pandoc filters made simple &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User guide" href="guide.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <span class="target" id="module-panflute"></span><div class="section" id="panflute-pandoc-filters-made-simple">
+<h1>Panflute: pandoc filters made simple<a class="headerlink" href="#panflute-pandoc-filters-made-simple" title="Permalink to this headline">¶</a></h1>
+<p>Panflute is a Python package that makes <a class="reference external" href="http://pandoc.org/">Pandoc</a>
+filters fun to write. (<a class="reference external" href="install.html">Installation</a>)</p>
+</div>
+<p>It is a pythonic alternative to John MacFarlane’s
+<a class="reference external" href="https://github.com/jgm/pandocfilters">pandocfilters</a>,
+from which it is heavily inspired.</p>
+<p>To use it, write a function that works on Pandoc elements
+and call it through <a class="reference external" href="code.html#panflute.io.run_filter">run_filter</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span> <span class="nf">increase_header_level</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">==</span> <span class="n">Header</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">level</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">level</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span> <span class="c1">#  Delete headers already in level 6</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">run_filter</span><span class="p">(</span><span class="n">increase_header_level</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="motivation">
+<h1>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h1>
+<p>Our goal is to make writing pandoc filters <em>as simple and clear as possible</em>. Starting from pandocfilters, we make it pythonic, add error and type checking, and include batteries for common tasks. In more detail:</p>
+<div class="section" id="pythonic">
+<h2>1. Pythonic<a class="headerlink" href="#pythonic" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Elements are easier to modify. For instance, to change the level of a
+header, you can do <code class="docutils literal notranslate"><span class="pre">header.level</span> <span class="pre">+=</span> <span class="pre">1</span></code> instead of <code class="docutils literal notranslate"><span class="pre">header['c'][0]</span> <span class="pre">+=</span> <span class="pre">1</span></code>.
+To change the identifier, do <code class="docutils literal notranslate"><span class="pre">header.identifier</span> <span class="pre">=</span> <span class="pre">'spam'</span></code> instead of
+<code class="docutils literal notranslate"><span class="pre">header['c'][1][1]</span> <span class="pre">=</span> <span class="pre">'spam'</span></code></p></li>
+<li><p>Elements are easier to create. Thus, to create a header you can do
+<code class="docutils literal notranslate"><span class="pre">Header(Str(The),</span> <span class="pre">Space,</span> <span class="pre">Str(Title),</span> <span class="pre">level=1,</span> <span class="pre">identifier=foo)</span></code>
+instead of <code class="docutils literal notranslate"><span class="pre">Header([1,[&quot;foo&quot;,[],[]],[{&quot;t&quot;:&quot;Str&quot;,&quot;c&quot;:&quot;The&quot;},{&quot;t&quot;:&quot;Space&quot;,&quot;c&quot;:[]},{&quot;t&quot;:&quot;Str&quot;,&quot;c&quot;:&quot;Title&quot;}])</span></code></p></li>
+<li><p>You can navigate across elements. Thus, you can check if <code class="docutils literal notranslate"><span class="pre">isinstance(elem.parent,</span> <span class="pre">Inline)</span></code> or if <code class="docutils literal notranslate"><span class="pre">type(elem.next)</span> <span class="pre">==</span> <span class="pre">Space</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="detects-common-mistakes">
+<h2>2. Detects common mistakes<a class="headerlink" href="#detects-common-mistakes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Check that the elements contain the correct types. Trying to create
+<cite>Para(‘text’)</cite> will give you the error “Para() element must contain Inlines
+but received a str()”, instead of just failing silently when running the
+filter.</p></li>
+</ul>
+</div>
+<div class="section" id="comes-with-batteries-included">
+<h2>3. Comes with batteries included<a class="headerlink" href="#comes-with-batteries-included" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Convert markdown and other formatted strings into python objects or
+other formats, with the
+<cite>convert_text(text, input_format, output_format)</cite> function (which calls
+Pandoc internally)</p></li>
+<li><p>Use code blocks to hold YAML options and other data (such as CSV) with
+<cite>yaml_filter(element, doc, tag, function)</cite>.</p></li>
+<li><p>Called external programs to fetch results with <cite>shell()</cite>.</p></li>
+<li><p>Modifying the entire document (e.g. moving all the figures and tables to the
+back of a PDF) is easy, thanks to the <cite>prepare</cite> and <cite>finalize</cite>
+options of <cite>run_filter</cite>, and to the <cite>replace_keyword</cite> function</p></li>
+<li><p>Convenience elements such as <cite>TableRow</cite> and <cite>TableCell</cite> allow for easier
+filters.</p></li>
+<li><p>Panflute can be run as a filter itself, in which case it will run all
+filters listed in the metadata field <cite>panflute-filters</cite>.</p></li>
+<li><p>Can use metadata as a dict of builtin-values instead of Panflute objects,
+with <cite>doc.get_metadata()</cite>.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="examples-of-panflute-filters">
+<h1>Examples of panflute filters<a class="headerlink" href="#examples-of-panflute-filters" title="Permalink to this headline">¶</a></h1>
+<p>Ports of existing pandocfilter modules are in the <a class="reference external" href="https://github.com/sergiocorreia/panflute/tree/master/examples/panflute">github repo</a>; additional and more advanced examples are in a <a class="reference external" href="https://github.com/sergiocorreia/panflute-filters">separate repository</a>.</p>
+<p>Also, a comprehensive list of filters and other Pandoc extras should be
+available <a class="reference external" href="https://github.com/pandoc-extras/">here</a> in the future.</p>
+<div class="section" id="alternative-filters-based-on-pandocfilters">
+<h2>Alternative: filters based on pandocfilters<a class="headerlink" href="#alternative-filters-based-on-pandocfilters" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>For a guide to pandocfilters, see the
+<a class="reference external" href="https://github.com/jgm/pandocfilters">repository</a>
+and the <a class="reference external" href="http://pandoc.org/scripting.html">tutorial</a>.</p></li>
+<li><p>The repo includes <a class="reference external" href="https://github.com/jgm/pandocfilters/tree/master/examples">sample filters</a>.</p></li>
+<li><p>The wiki lists useful <a class="reference external" href="https://github.com/jgm/pandoc/wiki/Pandoc-Filters">third party filters</a>.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="contents">
+<h1>Contents:<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#a-simple-filter">A Simple filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#more-complex-filters">More complex filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#globals-and-backmatter">Globals and backmatter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#using-the-included-batteries">Using the included batteries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#yaml-code-blocks">YAML code blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#calling-external-programs">Calling external programs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#navigating-through-the-document-tree">Navigating through the document tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#running-filters-automatically">Running filters automatically</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#dev-install">Dev Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Panflute API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="code.html#base-elements">Base elements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="code.html#low-level-classes">Low-level classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="code.html#standard-elements">Standard elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="code.html#standard-functions">Standard functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="code.html#batteries-included-functions">“Batteries included” functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="about.html#license">License</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">panflute</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="panflute.html">panflute package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="panflute.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="panflute.html#module-panflute">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="#">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="#">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">panflute</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="guide.html" title="next chapter">User guide</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,26 @@
+panflute package
+================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 10
+
+   panflute.autofilter
+   panflute.base
+   panflute.containers
+   panflute.elements
+   panflute.io
+   panflute.table_elements
+   panflute.tools
+   panflute.utils
+   panflute.version
+
+Module contents
+---------------
+
+.. automodule:: panflute
+   :members:
+   :undoc-members:
+   :show-inheritance:

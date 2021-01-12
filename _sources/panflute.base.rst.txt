@@ -1,0 +1,7 @@
+panflute.base module
+====================
+
+.. automodule:: panflute.base
+   :members:
+   :undoc-members:
+   :show-inheritance:

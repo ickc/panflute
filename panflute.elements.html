@@ -1,0 +1,1289 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.elements module &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="panflute.io module" href="panflute.io.html" />
+    <link rel="prev" title="panflute.containers module" href="panflute.containers.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-panflute.elements">
+<span id="panflute-elements-module"></span><h1>panflute.elements module<a class="headerlink" href="#module-panflute.elements" title="Permalink to this headline">¶</a></h1>
+<p>Classes corresponding to Pandoc elements</p>
+<p>Notation:
+- “ica” is shorthand for “identifier, classes, attributes”</p>
+<dl class="py class">
+<dt id="panflute.elements.BlockQuote">
+<em class="property">class </em><code class="sig-name descname">BlockQuote</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#BlockQuote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.BlockQuote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Block quote</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code>) – sequence of blocks</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.BulletList">
+<em class="property">class </em><code class="sig-name descname">BulletList</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#BulletList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.BulletList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Bullet list (unordered list)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference internal" href="#panflute.elements.ListItem" title="panflute.elements.ListItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListItem</span></code></a> | <code class="docutils literal notranslate"><span class="pre">list</span></code>) – List item</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Citation">
+<em class="property">class </em><code class="sig-name descname">Citation</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Citation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Citation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>A single citation to a single work</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – citation key (e.g. the bibtex keyword)</p></li>
+<li><p><strong>mode</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – how will the citation appear (‘NormalCitation’ for the
+default style, ‘AuthorInText’ to exclude parenthesis,
+‘SuppressAuthor’ to exclude the author’s name)</p></li>
+<li><p><strong>prefix</strong> ([<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>]) – Text before the citation reference</p></li>
+<li><p><strong>suffix</strong> ([<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>]) – Text after the citation reference</p></li>
+<li><p><strong>note_num</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – (Not sure…)</p></li>
+<li><p><strong>hash</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – (Not sure…)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Citation.hash">
+<code class="sig-name descname">hash</code><a class="headerlink" href="#panflute.elements.Citation.hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Citation.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#panflute.elements.Citation.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Citation.mode">
+<code class="sig-name descname">mode</code><a class="headerlink" href="#panflute.elements.Citation.mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Citation.note_num">
+<code class="sig-name descname">note_num</code><a class="headerlink" href="#panflute.elements.Citation.note_num" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.elements.Citation.prefix">
+<em class="property">property </em><code class="sig-name descname">prefix</code><a class="headerlink" href="#panflute.elements.Citation.prefix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.elements.Citation.suffix">
+<em class="property">property </em><code class="sig-name descname">suffix</code><a class="headerlink" href="#panflute.elements.Citation.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.elements.Citation.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Citation.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Citation.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.elements.Citation.to_json_legacy">
+<code class="sig-name descname">to_json_legacy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Citation.to_json_legacy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Citation.to_json_legacy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Cite">
+<em class="property">class </em><code class="sig-name descname">Cite</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Cite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Cite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Cite: set of citations with related text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – contents of the cite (the raw text)</p></li>
+<li><p><strong>citations</strong> ([<a class="reference internal" href="#panflute.elements.Citation" title="panflute.elements.Citation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Citation</span></code></a>]) – sequence of citations</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.Cite.citations">
+<em class="property">property </em><code class="sig-name descname">citations</code><a class="headerlink" href="#panflute.elements.Cite.citations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Code">
+<em class="property">class </em><code class="sig-name descname">Code</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Code"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Inline code (literal)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – literal text (preformatted text, code, etc.)</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – element identifier (usually unique)</p></li>
+<li><p><strong>classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – class names of the element</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – additional attributes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Code.attributes">
+<code class="sig-name descname">attributes</code><a class="headerlink" href="#panflute.elements.Code.attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Code.classes">
+<code class="sig-name descname">classes</code><a class="headerlink" href="#panflute.elements.Code.classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Code.identifier">
+<code class="sig-name descname">identifier</code><a class="headerlink" href="#panflute.elements.Code.identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Code.text">
+<code class="sig-name descname">text</code><a class="headerlink" href="#panflute.elements.Code.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.CodeBlock">
+<em class="property">class </em><code class="sig-name descname">CodeBlock</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#CodeBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.CodeBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Code block (literal text) with optional attributes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – literal text (preformatted text, code, etc.)</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – element identifier (usually unique)</p></li>
+<li><p><strong>classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – class names of the element</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – additional attributes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.CodeBlock.attributes">
+<code class="sig-name descname">attributes</code><a class="headerlink" href="#panflute.elements.CodeBlock.attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.CodeBlock.classes">
+<code class="sig-name descname">classes</code><a class="headerlink" href="#panflute.elements.CodeBlock.classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.CodeBlock.identifier">
+<code class="sig-name descname">identifier</code><a class="headerlink" href="#panflute.elements.CodeBlock.identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.CodeBlock.text">
+<code class="sig-name descname">text</code><a class="headerlink" href="#panflute.elements.CodeBlock.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Definition">
+<em class="property">class </em><code class="sig-name descname">Definition</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>The definition (description); used in a definition list.
+It can include code and all other block elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code>) – elements</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.Definition.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Definition.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Definition.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.DefinitionItem">
+<em class="property">class </em><code class="sig-name descname">DefinitionItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#DefinitionItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.DefinitionItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>Contains pairs of Term and Definitions (plural!)</p>
+<p>Each list item represents a pair of i) a term
+(a list of inlines) and ii) one or more definitions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>term</strong> ([<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>]) – Term of the definition (an inline holder)</p></li>
+<li><p><strong>definitions</strong> – List of definitions or descriptions
+(each a block holder)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.DefinitionItem.definitions">
+<em class="property">property </em><code class="sig-name descname">definitions</code><a class="headerlink" href="#panflute.elements.DefinitionItem.definitions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.elements.DefinitionItem.term">
+<em class="property">property </em><code class="sig-name descname">term</code><a class="headerlink" href="#panflute.elements.DefinitionItem.term" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.elements.DefinitionItem.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#DefinitionItem.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.DefinitionItem.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.DefinitionList">
+<em class="property">class </em><code class="sig-name descname">DefinitionList</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#DefinitionList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.DefinitionList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Definition list: list of definition items; basically (term, definition)
+tuples.</p>
+<p>Each list item represents a pair of i) a term
+(a list of inlines) and ii) one or more definitions (each a list of blocks)</p>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">term1</span> <span class="o">=</span> <span class="p">[</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Spam&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">def1</span> <span class="o">=</span> <span class="n">Definition</span><span class="p">(</span><span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;...emails&#39;</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">def2</span> <span class="o">=</span> <span class="n">Definition</span><span class="p">(</span><span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;...meat&#39;</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spam</span> <span class="o">=</span> <span class="n">DefinitionItem</span><span class="p">(</span><span class="n">term1</span><span class="p">,</span> <span class="p">[</span><span class="n">def1</span><span class="p">,</span> <span class="n">def2</span><span class="p">])</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term2</span> <span class="o">=</span> <span class="p">[</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Spanish&#39;</span><span class="p">),</span> <span class="n">Space</span><span class="p">,</span> <span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Inquisition&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">def3</span> <span class="o">=</span> <span class="n">Definition</span><span class="p">(</span><span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;church&#39;</span><span class="p">),</span> <span class="n">Space</span><span class="p">,</span> <span class="n">Str</span><span class="p">(</span><span class="s1">&#39;court&#39;</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inquisition</span> <span class="o">=</span> <span class="n">DefinitionItem</span><span class="p">(</span><span class="n">term</span><span class="o">=</span><span class="n">term2</span><span class="p">,</span> <span class="n">definitions</span><span class="o">=</span><span class="p">[</span><span class="n">def3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">definition_list</span> <span class="o">=</span> <span class="n">DefinitionList</span><span class="p">(</span><span class="n">spam</span><span class="p">,</span> <span class="n">inquisition</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference internal" href="#panflute.elements.DefinitionItem" title="panflute.elements.DefinitionItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefinitionItem</span></code></a>) – Definition items (a term with definitions)</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Div">
+<em class="property">class </em><code class="sig-name descname">Div</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Div"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Div" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Generic block container with attributes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code>) – contents of the div</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – element identifier (usually unique)</p></li>
+<li><p><strong>classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – class names of the element</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – additional attributes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Div.attributes">
+<code class="sig-name descname">attributes</code><a class="headerlink" href="#panflute.elements.Div.attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Div.classes">
+<code class="sig-name descname">classes</code><a class="headerlink" href="#panflute.elements.Div.classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Div.identifier">
+<code class="sig-name descname">identifier</code><a class="headerlink" href="#panflute.elements.Div.identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Doc">
+<em class="property">class </em><code class="sig-name descname">Doc</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Doc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Doc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>Pandoc document container.</p>
+<p>Besides the document, it includes the frontpage metadata and the
+desired output format. Filter functions can also add properties to it
+as means of global variables that can later be read by different calls.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code> sequence) – top–level documents contained in the document</p></li>
+<li><p><strong>metadata</strong> (<code class="docutils literal notranslate"><span class="pre">dict</span></code>) – the frontpage metadata</p></li>
+<li><p><strong>format</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – output format, such as ‘markdown’, ‘latex’ and ‘html’</p></li>
+<li><p><strong>api_version</strong> (<code class="docutils literal notranslate"><span class="pre">tuple</span></code>) – A tuple of three ints of the form (1, 18, 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Document with base class <code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></p>
+</dd>
+<dt class="field-odd">Base</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></p>
+</dd>
+<dt class="field-even">Example</dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">meta</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;author&#39;</span><span class="p">:</span><span class="s1">&#39;John Doe&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">Header</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Title&#39;</span><span class="p">)),</span> <span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Hello!&#39;</span><span class="p">))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">Doc</span><span class="p">(</span><span class="o">*</span><span class="n">content</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;pdf&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span><span class="o">.</span><span class="n">figure_count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1">#  You can add attributes freely</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.Doc.get_metadata">
+<code class="sig-name descname">get_metadata</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">key</em>, <em class="sig-param">default</em>, <em class="sig-param">simple</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#panflute.elements.Doc.get_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve metadata with nested keys separated by dots.</p>
+<p>This is useful to avoid repeatedly checking if a dict exists, as
+the frontmatter might not have the keys that we expect.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">builtin=True</span></code> (the default), it will convert the results to
+built-in Python types, instead of <a class="reference internal" href="panflute.base.html#panflute.base.MetaValue" title="panflute.base.MetaValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code></a> elements. EG: instead of returning a MetaBool it will return True|False.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – string with the keys separated by a dot (<code class="docutils literal notranslate"><span class="pre">key1.key2</span></code>). Default is an empty string (which returns the entire metadata dict)</p></li>
+<li><p><strong>default</strong> – return value in case the key is not found (default is <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p></li>
+<li><p><strong>builtin</strong> – If True, return built-in Python types (default is <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Example</dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;format&#39;</span><span class="p">][</span><span class="s1">&#39;show-frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># afterwards:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_frame</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="s1">&#39;format.show-frame&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stata_path</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="s1">&#39;media.path.figures&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Doc.location">
+<code class="sig-name descname">location</code><a class="headerlink" href="#panflute.elements.Doc.location" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.elements.Doc.metadata">
+<em class="property">property </em><code class="sig-name descname">metadata</code><a class="headerlink" href="#panflute.elements.Doc.metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Doc.parent">
+<code class="sig-name descname">parent</code><a class="headerlink" href="#panflute.elements.Doc.parent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.elements.Doc.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Doc.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Doc.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Emph">
+<em class="property">class </em><code class="sig-name descname">Emph</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Emph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Emph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Emphasized text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – elements that will be emphasized</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Header">
+<em class="property">class </em><code class="sig-name descname">Header</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – contents of the header</p></li>
+<li><p><strong>level</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – level of the header (1 is the largest and 6 the smallest)</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – element identifier (usually unique)</p></li>
+<li><p><strong>classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – class names of the element</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – additional attributes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+<dt class="field-odd">Example</dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="p">[</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Monty&#39;</span><span class="p">),</span> <span class="n">Space</span><span class="p">,</span> <span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Python&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="n">Header</span><span class="p">(</span><span class="o">*</span><span class="n">title</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;toc&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">level</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Header.attributes">
+<code class="sig-name descname">attributes</code><a class="headerlink" href="#panflute.elements.Header.attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Header.classes">
+<code class="sig-name descname">classes</code><a class="headerlink" href="#panflute.elements.Header.classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Header.identifier">
+<code class="sig-name descname">identifier</code><a class="headerlink" href="#panflute.elements.Header.identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Header.level">
+<code class="sig-name descname">level</code><a class="headerlink" href="#panflute.elements.Header.level" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.HorizontalRule">
+<em class="property">class </em><code class="sig-name descname">HorizontalRule</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#HorizontalRule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.HorizontalRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Horizontal rule</p>
+<dl class="field-list simple">
+<dt class="field-odd">Base</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.HorizontalRule.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#HorizontalRule.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.HorizontalRule.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Image">
+<em class="property">class </em><code class="sig-name descname">Image</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – text with the image description</p></li>
+<li><p><strong>url</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – URL or path of the image</p></li>
+<li><p><strong>title</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Alt. title</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – element identifier (usually unique)</p></li>
+<li><p><strong>classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – class names of the element</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – additional attributes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Image.attributes">
+<code class="sig-name descname">attributes</code><a class="headerlink" href="#panflute.elements.Image.attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Image.classes">
+<code class="sig-name descname">classes</code><a class="headerlink" href="#panflute.elements.Image.classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Image.identifier">
+<code class="sig-name descname">identifier</code><a class="headerlink" href="#panflute.elements.Image.identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Image.title">
+<code class="sig-name descname">title</code><a class="headerlink" href="#panflute.elements.Image.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Image.url">
+<code class="sig-name descname">url</code><a class="headerlink" href="#panflute.elements.Image.url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.LineBlock">
+<em class="property">class </em><code class="sig-name descname">LineBlock</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#LineBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.LineBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Line block (sequence of lines)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<a class="reference internal" href="#panflute.elements.LineItem" title="panflute.elements.LineItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">LineItem</span></code></a> | <code class="docutils literal notranslate"><span class="pre">list</span></code>) – Line item</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.LineBreak">
+<em class="property">class </em><code class="sig-name descname">LineBreak</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#LineBreak"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.LineBreak" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Hard line break</p>
+<dl class="field-list simple">
+<dt class="field-odd">Base</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.LineBreak.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#LineBreak.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.LineBreak.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.LineItem">
+<em class="property">class </em><code class="sig-name descname">LineItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#LineItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.LineItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>Line item (contained in line blocks)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – Line item</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.LineItem.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#LineItem.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.LineItem.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Link">
+<em class="property">class </em><code class="sig-name descname">Link</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Hyperlink</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – text with the link description</p></li>
+<li><p><strong>url</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – URL or path of the link</p></li>
+<li><p><strong>title</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Alt. title</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – element identifier (usually unique)</p></li>
+<li><p><strong>classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – class names of the element</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – additional attributes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Link.attributes">
+<code class="sig-name descname">attributes</code><a class="headerlink" href="#panflute.elements.Link.attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Link.classes">
+<code class="sig-name descname">classes</code><a class="headerlink" href="#panflute.elements.Link.classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Link.identifier">
+<code class="sig-name descname">identifier</code><a class="headerlink" href="#panflute.elements.Link.identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Link.title">
+<code class="sig-name descname">title</code><a class="headerlink" href="#panflute.elements.Link.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Link.url">
+<code class="sig-name descname">url</code><a class="headerlink" href="#panflute.elements.Link.url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.ListItem">
+<em class="property">class </em><code class="sig-name descname">ListItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#ListItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.ListItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>List item (contained in bullet lists and ordered lists)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code>) – List item</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.ListItem.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#ListItem.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.ListItem.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Math">
+<em class="property">class </em><code class="sig-name descname">Math</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Math"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Math" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>TeX math (literal)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string of raw text representing TeX math</p></li>
+<li><p><strong>format</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – How the math will be typeset (‘DisplayMath’ or ‘InlineMath’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Math.format">
+<code class="sig-name descname">format</code><a class="headerlink" href="#panflute.elements.Math.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Math.text">
+<code class="sig-name descname">text</code><a class="headerlink" href="#panflute.elements.Math.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.MetaBlocks">
+<em class="property">class </em><code class="sig-name descname">MetaBlocks</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#MetaBlocks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.MetaBlocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.MetaValue" title="panflute.base.MetaValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.MetaValue</span></code></a></p>
+<p>MetaBlocks: list of arbitrary blocks within the metadata</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code>) – sequence of block elements</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.MetaBool">
+<em class="property">class </em><code class="sig-name descname">MetaBool</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#MetaBool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.MetaBool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.MetaValue" title="panflute.base.MetaValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.MetaValue</span></code></a></p>
+<p>Container for True/False metadata values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>boolean</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – True/False value</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.MetaBool.boolean">
+<code class="sig-name descname">boolean</code><a class="headerlink" href="#panflute.elements.MetaBool.boolean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.MetaInlines">
+<em class="property">class </em><code class="sig-name descname">MetaInlines</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#MetaInlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.MetaInlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.MetaValue" title="panflute.base.MetaValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.MetaValue</span></code></a></p>
+<p>MetaInlines: list of arbitrary inlines within the metadata</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – sequence of inline elements</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.MetaList">
+<em class="property">class </em><code class="sig-name descname">MetaList</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#MetaList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.MetaList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.MetaValue" title="panflute.base.MetaValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.MetaValue</span></code></a></p>
+<p>Metadata list container</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code>) – contents of a metadata list</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.MetaList.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#MetaList.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.MetaList.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.MetaMap">
+<em class="property">class </em><code class="sig-name descname">MetaMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#MetaMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.MetaMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.MetaValue" title="panflute.base.MetaValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.MetaValue</span></code></a></p>
+<p>Metadata container for ordered dicts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code>) – (key, value) tuples</p></li>
+<li><p><strong>kwargs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code>) – named arguments</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.MetaMap.content">
+<em class="property">property </em><code class="sig-name descname">content</code><a class="headerlink" href="#panflute.elements.MetaMap.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map of <code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code> objects.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.MetaString">
+<em class="property">class </em><code class="sig-name descname">MetaString</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#MetaString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.MetaString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.MetaValue" title="panflute.base.MetaValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.MetaValue</span></code></a></p>
+<p>Text (a string)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string of unformatted text</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaValue</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.MetaString.text">
+<code class="sig-name descname">text</code><a class="headerlink" href="#panflute.elements.MetaString.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Note">
+<em class="property">class </em><code class="sig-name descname">Note</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Note" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Footnote or endnote</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code>) – elements that are part of the note</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Null">
+<em class="property">class </em><code class="sig-name descname">Null</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Null"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Null" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Nothing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Base</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.Null.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Null.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Null.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.OrderedList">
+<em class="property">class </em><code class="sig-name descname">OrderedList</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#OrderedList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.OrderedList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Ordered list (attributes and a list of items, each a list of blocks)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<a class="reference internal" href="#panflute.elements.ListItem" title="panflute.elements.ListItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListItem</span></code></a> | <code class="docutils literal notranslate"><span class="pre">list</span></code>) – List item</p></li>
+<li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Starting value of the list</p></li>
+<li><p><strong>style</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Style of the number delimiter
+(‘DefaultStyle’, ‘Example’, ‘Decimal’, ‘LowerRoman’,
+‘UpperRoman’, ‘LowerAlpha’, ‘UpperAlpha’)</p></li>
+<li><p><strong>delimiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – List number delimiter
+(‘DefaultDelim’, ‘Period’, ‘OneParen’, ‘TwoParens’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.OrderedList.delimiter">
+<code class="sig-name descname">delimiter</code><a class="headerlink" href="#panflute.elements.OrderedList.delimiter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.OrderedList.start">
+<code class="sig-name descname">start</code><a class="headerlink" href="#panflute.elements.OrderedList.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.OrderedList.style">
+<code class="sig-name descname">style</code><a class="headerlink" href="#panflute.elements.OrderedList.style" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Para">
+<em class="property">class </em><code class="sig-name descname">Para</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Para"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Para" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Paragraph</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – contents of the paragraph</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+<dt class="field-odd">Example</dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Some&#39;</span><span class="p">),</span> <span class="n">Space</span><span class="p">,</span> <span class="n">Emph</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;words.&#39;</span><span class="p">))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">para1</span> <span class="o">=</span> <span class="n">Para</span><span class="p">(</span><span class="o">*</span><span class="n">content</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">para2</span> <span class="o">=</span> <span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;More&#39;</span><span class="p">),</span> <span class="n">Space</span><span class="p">,</span> <span class="n">Str</span><span class="p">(</span><span class="s1">&#39;words.&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Plain">
+<em class="property">class </em><code class="sig-name descname">Plain</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Plain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Plain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Plain text, not a paragraph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – contents of the plain block of text</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Quoted">
+<em class="property">class </em><code class="sig-name descname">Quoted</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Quoted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Quoted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Quoted text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – contents of the quote</p></li>
+<li><p><strong>quote_type</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – either ‘SingleQuote’ or ‘DoubleQuote’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Quoted.quote_type">
+<code class="sig-name descname">quote_type</code><a class="headerlink" href="#panflute.elements.Quoted.quote_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.RawBlock">
+<em class="property">class </em><code class="sig-name descname">RawBlock</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#RawBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.RawBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Block</span></code></a></p>
+<p>Raw block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string of raw text with another underlying format</p></li>
+<li><p><strong>format</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Format of the raw text (‘html’, ‘tex’, ‘latex’, ‘context’, etc.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.RawBlock.format">
+<code class="sig-name descname">format</code><a class="headerlink" href="#panflute.elements.RawBlock.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.RawBlock.text">
+<code class="sig-name descname">text</code><a class="headerlink" href="#panflute.elements.RawBlock.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.RawInline">
+<em class="property">class </em><code class="sig-name descname">RawInline</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#RawInline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.RawInline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Raw inline text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string of raw text with another underlying format</p></li>
+<li><p><strong>format</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Format of the raw text (‘html’, ‘tex’, ‘latex’, ‘context’, etc.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.RawInline.format">
+<code class="sig-name descname">format</code><a class="headerlink" href="#panflute.elements.RawInline.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.RawInline.text">
+<code class="sig-name descname">text</code><a class="headerlink" href="#panflute.elements.RawInline.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.SmallCaps">
+<em class="property">class </em><code class="sig-name descname">SmallCaps</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#SmallCaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.SmallCaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Small caps text (list of inlines)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – elements that will be set with small caps</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.SoftBreak">
+<em class="property">class </em><code class="sig-name descname">SoftBreak</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#SoftBreak"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.SoftBreak" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Soft line break</p>
+<dl class="field-list simple">
+<dt class="field-odd">Base</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.SoftBreak.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#SoftBreak.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.SoftBreak.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Space">
+<em class="property">class </em><code class="sig-name descname">Space</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Space"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Inter-word space</p>
+<dl class="field-list simple">
+<dt class="field-odd">Base</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="panflute.elements.Space.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Space.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Space.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Span">
+<em class="property">class </em><code class="sig-name descname">Span</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Span"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Span" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Generic block container with attributes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – contents of the div</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – element identifier (usually unique)</p></li>
+<li><p><strong>classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – class names of the element</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – additional attributes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Span.attributes">
+<code class="sig-name descname">attributes</code><a class="headerlink" href="#panflute.elements.Span.attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Span.classes">
+<code class="sig-name descname">classes</code><a class="headerlink" href="#panflute.elements.Span.classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.elements.Span.identifier">
+<code class="sig-name descname">identifier</code><a class="headerlink" href="#panflute.elements.Span.identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Str">
+<em class="property">class </em><code class="sig-name descname">Str</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Text (a string)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string of unformatted text</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="panflute.elements.Str.text">
+<code class="sig-name descname">text</code><a class="headerlink" href="#panflute.elements.Str.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Strikeout">
+<em class="property">class </em><code class="sig-name descname">Strikeout</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Strikeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Strikeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Strikeout text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – elements that will be striken out</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Strong">
+<em class="property">class </em><code class="sig-name descname">Strong</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Strong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Strong" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Strongly emphasized text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – elements that will be emphasized</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Subscript">
+<em class="property">class </em><code class="sig-name descname">Subscript</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Subscript"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Subscript" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Subscripted text (list of inlines)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – elements that will be set suberscript</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Superscript">
+<em class="property">class </em><code class="sig-name descname">Superscript</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Superscript"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Superscript" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Superscripted text (list of inlines)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – elements that will be set superscript</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.elements.Underline">
+<em class="property">class </em><code class="sig-name descname">Underline</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#Underline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.Underline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="panflute.base.html#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Inline</span></code></a></p>
+<p>Underlined text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code>) – elements that will be underlined</p>
+</dd>
+<dt class="field-even">Base</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.elements.builtin2meta">
+<code class="sig-name descname">builtin2meta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#builtin2meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.builtin2meta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="panflute.elements.from_json">
+<code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/elements.html#from_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.elements.from_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Contributing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">panflute</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="panflute.html">panflute package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="panflute.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="panflute.html#module-panflute">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">panflute</a><ul>
+  <li><a href="panflute.html">panflute package</a><ul>
+      <li>Previous: <a href="panflute.containers.html" title="previous chapter">panflute.containers module</a></li>
+      <li>Next: <a href="panflute.io.html" title="next chapter">panflute.io module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

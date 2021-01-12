@@ -1,0 +1,7 @@
+panflute
+========
+
+.. toctree::
+   :maxdepth: 10
+
+   panflute

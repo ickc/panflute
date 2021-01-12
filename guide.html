@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User guide &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" />
+    <link rel="prev" title="Panflute: pandoc filters made simple" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="user-guide">
+<h1>User guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="a-simple-filter">
+<h2>A Simple filter<a class="headerlink" href="#a-simple-filter" title="Permalink to this headline">¶</a></h2>
+<p>Suppose we want to create a filter that sets all headers to level 1. For this, write this python script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Set all headers to level 1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+        <span class="n">elem</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span> 
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>a more complete template is <a class="reference external" href="https://github.com/sergiocorreia/panflute/tree/master/docs/source/_static/template.py">located here</a></p>
+</div>
+</div>
+<div class="section" id="more-complex-filters">
+<h2>More complex filters<a class="headerlink" href="#more-complex-filters" title="Permalink to this headline">¶</a></h2>
+<p>We might want filters that replace an element instead of just modifying it.
+For instance, suppose we want to replace all emphasized text with striked
+out text:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Replace Emph elements with Strikeout elements</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">Emph</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Strikeout</span><span class="p">(</span><span class="o">*</span><span class="n">elem</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Or if we want to remove all tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Remove all tables</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="globals-and-backmatter">
+<h2>Globals and backmatter<a class="headerlink" href="#globals-and-backmatter" title="Permalink to this headline">¶</a></h2>
+<p>Suppose we want to add a table of contents based on all headers, or move all tables to a specific location in the document. This requires tracking global
+variables (which can be stored as attributes of <code class="docutils literal notranslate"><span class="pre">doc</span></code>).</p>
+<p>To add a table of contents at the beginning:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Add table of contents at the beginning;</span>
+<span class="sd">uses optional metadata value &#39;toc-depth&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+    <span class="n">doc</span><span class="o">.</span><span class="n">toc</span> <span class="o">=</span> <span class="n">BulletList</span><span class="p">()</span>
+    <span class="n">doc</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="s1">&#39;toc-depth&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">Header</span><span class="p">)</span> <span class="ow">and</span> <span class="n">elem</span><span class="o">.</span><span class="n">level</span> <span class="o">&lt;=</span> <span class="n">doc</span><span class="o">.</span><span class="n">depth</span><span class="p">:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">ListItem</span><span class="p">(</span><span class="n">Plain</span><span class="p">(</span><span class="o">*</span><span class="n">elem</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
+        <span class="n">doc</span><span class="o">.</span><span class="n">toc</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+    <span class="n">doc</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">toc</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">doc</span><span class="o">.</span><span class="n">toc</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">depth</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">prepare</span><span class="o">=</span><span class="n">prepare</span><span class="p">,</span> <span class="n">finalize</span><span class="o">=</span><span class="n">finalize</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span> 
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To move all tables to the place where the string <em>$tables</em> is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Move tables to where the string $tables is.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+    <span class="n">doc</span><span class="o">.</span><span class="n">backmatter</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
+        <span class="n">doc</span><span class="o">.</span><span class="n">backmatter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+
+<span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+    <span class="n">div</span> <span class="o">=</span> <span class="n">Div</span><span class="p">(</span><span class="o">*</span><span class="n">doc</span><span class="o">.</span><span class="n">backmatter</span><span class="p">)</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">replace_keyword</span><span class="p">(</span><span class="s1">&#39;$tables&#39;</span><span class="p">,</span> <span class="n">div</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">prepare</span><span class="p">,</span> <span class="n">finalize</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-the-included-batteries">
+<h2>Using the included batteries<a class="headerlink" href="#using-the-included-batteries" title="Permalink to this headline">¶</a></h2>
+<p>There are several functions and methods that make your life easier, such as
+the <a class="reference external" href="code.html#panflute.base.Element.replace_keyword">replace_keyword</a>
+method shown above.</p>
+<p>Other useful functions include
+<a class="reference external" href="code.html#panflute.tools.convert_text">convert_text</a>
+(to load and parse markdown or other formatted text) and
+<a class="reference external" href="code.html#panflute.tools.stringify">stringify</a>
+(to extract the underlying text from an element and its children).
+For metadata, you can use the <a class="reference external" href="code.html#panflute.elements.Doc.get_metadata">doc.get_metadata</a> attribute to extract user–specified options (booleans, strings, etc.)</p>
+<p>For instance, you can combine these functions to allow for include directives (so you can include and parse markdown files from other files).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Panflute filter to allow file includes</span>
+
+<span class="sd">Each include statement has its own line and has the syntax:</span>
+
+<span class="sd">    $include ../somefolder/somefile</span>
+
+<span class="sd">Each include statement must be in its own paragraph. That is, in its own line</span>
+<span class="sd">and separated by blank lines.</span>
+
+<span class="sd">If no extension was given, &quot;.md&quot; is assumed.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+
+
+<span class="k">def</span> <span class="nf">is_include_line</span><span class="p">(</span><span class="n">elem</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">all</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">Str</span><span class="p">,</span> <span class="n">pf</span><span class="o">.</span><span class="n">Space</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">elem</span><span class="o">.</span><span class="n">content</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="n">elem</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="o">!=</span> <span class="s1">&#39;$include&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">elem</span><span class="p">):</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fn</span><span class="p">)[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">fn</span> <span class="o">+=</span> <span class="s1">&#39;.md&#39;</span>
+    <span class="k">return</span> <span class="n">fn</span>
+
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">pf</span><span class="o">.</span><span class="n">Para</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_include_line</span><span class="p">(</span><span class="n">elem</span><span class="p">):</span>
+        
+        <span class="n">fn</span> <span class="o">=</span> <span class="n">get_filename</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+            <span class="k">return</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">raw</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="n">new_elems</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">convert_text</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+        
+        <span class="c1"># Alternative A:</span>
+        <span class="k">return</span> <span class="n">new_elems</span>
+        <span class="c1"># Alternative B:</span>
+        <span class="c1"># div = pf.Div(*new_elems, attributes={&#39;source&#39;: fn})</span>
+        <span class="c1"># return div</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pf</span><span class="o">.</span><span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span> 
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="yaml-code-blocks">
+<h2>YAML code blocks<a class="headerlink" href="#yaml-code-blocks" title="Permalink to this headline">¶</a></h2>
+<p>A YAML filter is a filter that parses fenced code blocks
+that contain YAML metadata. For instance:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Some text
+
+~~~ csv
+title: Some Title
+has-header: True
+---
+Col1, Col2, Col3
+1, 2, 3
+10, 20, 30
+~~~
+
+More text
+</pre></div>
+</div>
+<p>Note that fenced code blocks use three or more
+<a class="reference external" href="http://pandoc.org/README.html#extension-fenced_code_blocks">tildes</a>
+or
+<a class="reference external" href="http://pandoc.org/README.html#extension-backtick_code_blocks">backticks</a>
+as separators.
+Within a code block, use <a class="reference external" href="http://pandoc.org/README.html#extension-yaml_metadata_block">three hyphens or three dots</a>
+to separate the YAML options from the rest of the block.</p>
+<p>As an example, we will design a filter that will be applied to
+all code blocks with the <em>csv</em> class, like the one shown above.
+To avoid boilerplate code (such as parsing the YAML part), we use the
+useful <a class="reference external" href="code.html#panflute.tools.yaml_filter">yaml_filter</a> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Panflute filter to parse CSV in fenced YAML code blocks</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+
+
+<span class="k">def</span> <span class="nf">fenced_action</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="c1"># We&#39;ll only run this for CodeBlock elements of class &#39;csv&#39;</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;Untitled Table&#39;</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="p">[</span><span class="n">pf</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="n">title</span><span class="p">)]</span>
+    <span class="n">has_header</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;has-header&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="n">cells</span> <span class="o">=</span> <span class="p">[</span><span class="n">pf</span><span class="o">.</span><span class="n">TableCell</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">Plain</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">TableRow</span><span class="p">(</span><span class="o">*</span><span class="n">cells</span><span class="p">))</span>
+
+    <span class="n">header</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">has_header</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="o">*</span><span class="n">body</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">table</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pf</span><span class="o">.</span><span class="n">run_filter</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">yaml_filter</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">fenced_action</span><span class="p">,</span>
+                      <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>a more complete template is <a class="reference external" href="https://github.com/sergiocorreia/panflute/tree/master/docs/source/_static/fenced-template.py">here</a> , a fully developed filter for CSVs is <a class="reference external" href="https://github.com/ickc/pantable">also available</a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>yaml_filter</cite> now allows a <cite>strict_yaml=True</cite> option, which allows multiple YAML blocks, but with the caveat that all YAML blocks must start with <cite>—</cite> and end with <cite>—</cite> or <cite>…</cite>.</p>
+</div>
+</div>
+<div class="section" id="calling-external-programs">
+<h2>Calling external programs<a class="headerlink" href="#calling-external-programs" title="Permalink to this headline">¶</a></h2>
+<p>We might also want to embed results from other programs.</p>
+<p>One option is to do so through Python’s internals.
+For instance, we can use fetch data from wikipedia and show it on the document.
+Thus, the following script will replace links like these: <code class="docutils literal notranslate"><span class="pre">[Pandoc](wiki://)</span></code>
+With this “Pandoc is a free and open-source software document converter…”.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Panflute filter that embeds wikipedia text</span>
+
+<span class="sd">Replaces markdown such as [Stack Overflow](wiki://) with the resulting text.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">pf</span><span class="o">.</span><span class="n">Link</span><span class="p">)</span> <span class="ow">and</span> <span class="n">elem</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;wiki://&#39;</span><span class="p">):</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">baseurl</span> <span class="o">=</span> <span class="s1">&#39;https://en.wikipedia.org/w/api.php&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="s1">&#39;prop&#39;</span><span class="p">:</span> <span class="s1">&#39;extracts&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;explaintext&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;titles&#39;</span><span class="p">:</span> <span class="n">title</span><span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">baseurl</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">extract</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">][</span><span class="s1">&#39;pages&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;extract&#39;</span><span class="p">]</span>
+        <span class="n">extract</span> <span class="o">=</span> <span class="n">extract</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">pf</span><span class="o">.</span><span class="n">RawInline</span><span class="p">(</span><span class="n">extract</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pf</span><span class="o">.</span><span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span> 
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Alternatively, we might want to run other programs through the shell.
+For this, explore the <a class="reference external" href="code.html#panflute.tools.shell">shell</a>
+function.</p>
+</div>
+<div class="section" id="navigating-through-the-document-tree">
+<h2>Navigating through the document tree<a class="headerlink" href="#navigating-through-the-document-tree" title="Permalink to this headline">¶</a></h2>
+<p>You might wish to apply a filter that depends on the parent or sibling objects of an element. For instance, Modify the first row (<cite>TableRow</cite>) of a table, or all the <cite>Str</cite> items nested within a header.</p>
+<p>For this, every element has a <cite>.parent</cite> attribute (and the related <cite>.next</cite>, <cite>.prev</cite>, <cite>.ancestor(#), `.index</cite>, <cite>.offset(#)</cite> attributes).</p>
+<p>For example, the code below will emphasize all text in the last row of every table:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Make text in the last row of every table bold</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">pf</span><span class="o">.</span><span class="n">TableRow</span><span class="p">):</span>
+        <span class="c1"># Exclude table headers (which are not in a list)</span>
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">next</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pf</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+            <span class="n">elem</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">make_emph</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">make_emph</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">pf</span><span class="o">.</span><span class="n">Str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pf</span><span class="o">.</span><span class="n">Emph</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pf</span><span class="o">.</span><span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span> 
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-filters-automatically">
+<h2>Running filters automatically<a class="headerlink" href="#running-filters-automatically" title="Permalink to this headline">¶</a></h2>
+<p>If you run panflute as a filter (<code class="docutils literal notranslate"><span class="pre">pandoc</span> <span class="pre">...</span> <span class="pre">-F</span> <span class="pre">panflute</span></code>), then panflute will run all filters specified in the metadata field <code class="docutils literal notranslate"><span class="pre">panflute-filters</span></code>. This is faster and more convenient than typing the precise list and order of filters used every time the document is run.</p>
+<p>You can also specify the location of the filters with the <code class="docutils literal notranslate"><span class="pre">panflute-path</span></code> field, which will take precedence over Pandoc’s search <a class="reference external" href="https://pandoc.org/MANUAL.html#reader-options">locations</a> (<code class="docutils literal notranslate"><span class="pre">.</span></code>, <code class="docutils literal notranslate"><span class="pre">$datadir/filters</span></code>, and <code class="docutils literal notranslate"><span class="pre">$path</span></code>).</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---</span>
+<span class="n">title</span><span class="p">:</span> <span class="n">Some</span> <span class="n">title</span>
+<span class="n">panflute</span><span class="o">-</span><span class="n">filters</span><span class="p">:</span> <span class="p">[</span><span class="n">remove</span><span class="o">-</span><span class="n">tables</span><span class="p">,</span> <span class="n">include</span><span class="p">]</span>
+<span class="n">panflute</span><span class="o">-</span><span class="n">path</span><span class="p">:</span> <span class="s1">&#39;panflute/docs/source&#39;</span>
+<span class="o">...</span>
+
+<span class="n">Lorem</span> <span class="n">ipsum</span>
+</pre></div>
+</div>
+<p>For this to work, the filters need to have a very specific
+structure, with a <cite>main()</cite> function of the following form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Pandoc filter using panflute</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+
+
+<span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">pf</span><span class="o">.</span><span class="n">Element</span><span class="p">)</span> <span class="ow">and</span> <span class="n">doc</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;latex&#39;</span><span class="p">:</span>
+        <span class="k">pass</span>
+        <span class="c1"># return None -&gt; element unchanged</span>
+        <span class="c1"># return [] -&gt; delete element</span>
+
+
+<span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pf</span><span class="o">.</span><span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span>
+                         <span class="n">prepare</span><span class="o">=</span><span class="n">prepare</span><span class="p">,</span>
+                         <span class="n">finalize</span><span class="o">=</span><span class="n">finalize</span><span class="p">,</span>
+                         <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span> 
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To be able to run filters automatically, the main function needs to be exactly as shown, with an optional argument <code class="docutils literal notranslate"><span class="pre">doc</span></code>, that gets passed to <code class="docutils literal notranslate"><span class="pre">run_filter</span></code>, and which is <code class="docutils literal notranslate"><span class="pre">return</span></code> ed back.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can add <code class="docutils literal notranslate"><span class="pre">panflute-verbose:</span> <span class="pre">true</span></code> to the metadata to display debugging information, including the folders searched and the filters executed.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#a-simple-filter">A Simple filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#more-complex-filters">More complex filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#globals-and-backmatter">Globals and backmatter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-included-batteries">Using the included batteries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#yaml-code-blocks">YAML code blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#calling-external-programs">Calling external programs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#navigating-through-the-document-tree">Navigating through the document tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-filters-automatically">Running filters automatically</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">panflute</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Panflute: pandoc filters made simple</a></li>
+      <li>Next: <a href="install.html" title="next chapter">Installation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

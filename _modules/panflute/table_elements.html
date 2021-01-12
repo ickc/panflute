@@ -1,0 +1,510 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.table_elements &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for panflute.table_elements</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Classes corresponding to Pandoc Table elements</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Imports</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">decode_ica</span><span class="p">,</span> <span class="n">check_group</span><span class="p">,</span> <span class="n">check_type</span><span class="p">,</span> <span class="n">check_type_or_value</span><span class="p">,</span> <span class="n">encode_dict</span><span class="p">,</span> <span class="n">debug</span>
+<span class="kn">from</span> <span class="nn">.containers</span> <span class="kn">import</span> <span class="n">ListContainer</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Block</span><span class="p">,</span> <span class="n">Inline</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Classes</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="Table"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.Table">[docs]</a><span class="k">class</span> <span class="nc">Table</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Table, composed of a table head, one or more table bodies, and a</span>
+<span class="sd">    a table foot. You can also specify captions, short captions, column alignments,</span>
+<span class="sd">    and column widths.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; x = [Para(Str(&#39;Something&#39;)), Para(Space, Str(&#39;else&#39;))]</span>
+<span class="sd">        &gt;&gt;&gt; c1 = TableCell(*x)</span>
+<span class="sd">        &gt;&gt;&gt; c2 = TableCell(Header(Str(&#39;Title&#39;)))</span>
+<span class="sd">        &gt;&gt;&gt; row = TableRow(c1, c2)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; body = TableBody(row)</span>
+<span class="sd">        &gt;&gt;&gt; head = TableHead(row)</span>
+<span class="sd">        &gt;&gt;&gt; caption = Caption(Para(Str(&#39;Title&#39;)))</span>
+<span class="sd">        &gt;&gt;&gt; table = Table(body, head=head, caption=caption)</span>
+
+<span class="sd">    TODO: UPDATE EXAMPLE</span>
+<span class="sd">    TODO: OFFER A SIMPLE WAY TO BUILD A TABLE, with e.g. .alignments and .widths</span>
+
+<span class="sd">    :param args: Table bodies</span>
+<span class="sd">    :type args: :class:`TableBody`</span>
+<span class="sd">    :param head: Table head</span>
+<span class="sd">    :type head: :class:`TableHead`</span>
+<span class="sd">    :param foot: Table foot</span>
+<span class="sd">    :type foot: :class:`TableFoot`</span>
+<span class="sd">    :param caption: The caption of the table (with optional short caption)</span>
+<span class="sd">    :type caption: :class:`Caption`</span>
+<span class="sd">    :param colspec: list of (alignment, colwidth) tuples; one for each column</span>
+<span class="sd">    :type colspec: :class:`list` of (:class:`Alignment`, :class:`ColWidth`)</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+
+<span class="sd">    :param alignment: List of row alignments</span>
+<span class="sd">        (either &#39;AlignLeft&#39;, &#39;AlignRight&#39;, &#39;AlignCenter&#39; or &#39;AlignDefault&#39;).</span>
+<span class="sd">    :type alignment: [:class:`str`]</span>
+
+<span class="sd">    :param colwidth: Fractional column widths</span>
+<span class="sd">    :type colwidth: [:class:`float` | &quot;ColWidthDefault&quot;]</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;_head&#39;</span><span class="p">,</span> <span class="s1">&#39;_foot&#39;</span><span class="p">,</span> <span class="s1">&#39;_caption&#39;</span><span class="p">,</span> <span class="s1">&#39;colspec&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">,</span> <span class="s1">&#39;cols&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;head&#39;</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">,</span> <span class="s1">&#39;foot&#39;</span><span class="p">,</span> <span class="s1">&#39;caption&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">head</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">foot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">colspec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">TableBody</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">caption</span> <span class="o">=</span> <span class="n">caption</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_table_width</span><span class="p">()</span>  <span class="c1"># also fills in colspec if it&#39;s empty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foot</span> <span class="o">=</span> <span class="n">foot</span>
+        <span class="c1"># Colspec is a list of (alignment, width) tuples</span>
+        <span class="c1"># TODO: add validation to colspec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colspec</span> <span class="o">=</span> <span class="p">[(</span><span class="n">check_group</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">TABLE_ALIGNMENT</span><span class="p">),</span>
+                         <span class="n">check_type_or_value</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="s1">&#39;ColWidthDefault&#39;</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="ow">in</span> <span class="n">colspec</span><span class="p">]</span> <span class="k">if</span> <span class="n">colspec</span> <span class="k">else</span> <span class="p">[(</span><span class="s1">&#39;AlignDefault&#39;</span><span class="p">,</span> <span class="s1">&#39;ColWidthDefault&#39;</span><span class="p">)]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_colspec</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_table_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">count_columns_in_row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>  <span class="c1"># Table -&gt; First TableBody -&gt; IntermediateBody -&gt; First Row</span>
+
+    <span class="k">def</span> <span class="nf">_validate_cols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">content</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="n">block_cols</span> <span class="o">=</span> <span class="n">count_columns_in_row</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">block_cols</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">!=</span> <span class="n">block_cols</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">Invalid number of columns in table </span><span class="si">{</span><span class="n">block</span><span class="o">.</span><span class="n">location</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;Expected </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="si">}</span><span class="s1"> but received </span><span class="si">{</span><span class="n">block_cols</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_colspec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colspec</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">Invalid number of colspec tuples.&#39;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Expected </span><span class="si">{}</span><span class="s1"> but received </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colspec</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_head</span>
+
+    <span class="nd">@head</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_head</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">TableHead</span><span class="p">)</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="n">TableHead</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_head</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_head</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;head&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_cols</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">foot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_foot</span>
+
+    <span class="nd">@foot</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">foot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_foot</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">TableFoot</span><span class="p">)</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="n">TableFoot</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_foot</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_foot</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;foot&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_cols</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">foot</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">caption</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caption</span>
+
+    <span class="nd">@caption</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">caption</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_caption</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Caption</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_caption</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_caption</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;caption&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ica</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">()</span>
+        <span class="n">caption</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">caption</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="n">colspec</span> <span class="o">=</span> <span class="p">[[{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="n">a</span><span class="p">},</span> <span class="n">colspec_to_json</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">colspec</span><span class="p">]</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="n">bodies</span> <span class="o">=</span> <span class="p">[</span><span class="n">body</span><span class="o">.</span><span class="n">_slots_to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">body</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">]</span>
+        <span class="n">foot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">foot</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ica</span><span class="p">,</span> <span class="n">caption</span><span class="p">,</span> <span class="n">colspec</span><span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">bodies</span><span class="p">,</span> <span class="n">foot</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="TableHead"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableHead">[docs]</a><span class="k">class</span> <span class="nc">TableHead</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The head of a table, containing a one or more head rows, plus optional attributes</span>
+
+<span class="sd">    :param row: head rows</span>
+<span class="sd">    :type row: :class:`str`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">TableRow</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TableHead.to_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableHead.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div></div>
+
+
+<div class="viewcode-block" id="TableFoot"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableFoot">[docs]</a><span class="k">class</span> <span class="nc">TableFoot</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The foot of a table, containing a one or more foot rows, plus optional attributes</span>
+
+<span class="sd">    :param row: foot rows</span>
+<span class="sd">    :type row: :class:`str`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">TableRow</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TableFoot.to_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableFoot.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div></div>
+
+
+<div class="viewcode-block" id="TableBody"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableBody">[docs]</a><span class="k">class</span> <span class="nc">TableBody</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Body of a table, containing a list of intermediate head rows, a list of table body rows, row_head_columns, plus optional attributes</span>
+
+<span class="sd">    :param row: head rows</span>
+<span class="sd">    :type row: :class:`str`</span>
+<span class="sd">    :param head: Intermediate head (list of table rows)</span>
+<span class="sd">    :type head: :class:`list` of :class:`TableRow`</span>
+<span class="sd">    :param row_head_columns: number of columns on the left that are considered column headers (default: 0)</span>
+<span class="sd">    :type row_head_columns: class:`int`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;_head&#39;</span><span class="p">,</span> <span class="s1">&#39;row_head_columns&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">,</span> <span class="s1">&#39;head&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">head</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row_head_columns</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">TableRow</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">row_head_columns</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">row_head_columns</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_head</span>
+
+    <span class="nd">@head</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">list</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ListContainer</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_head</span> <span class="o">=</span> <span class="n">ListContainer</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="o">=</span><span class="n">TableRow</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_head</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;head&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_head_columns</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div>
+
+
+<div class="viewcode-block" id="TableRow"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableRow">[docs]</a><span class="k">class</span> <span class="nc">TableRow</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Table Row</span>
+
+<span class="sd">    :param args: cells</span>
+<span class="sd">    :type args: :class:`TableCell`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Element`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">TableCell</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TableRow.to_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableRow.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div></div>
+
+
+<div class="viewcode-block" id="TableCell"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableCell">[docs]</a><span class="k">class</span> <span class="nc">TableCell</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Table Cell</span>
+
+<span class="sd">    :param args: elements</span>
+<span class="sd">    :type args: :class:`Block`</span>
+<span class="sd">    :param alignment: row alignment</span>
+<span class="sd">        (either &#39;AlignLeft&#39;, &#39;AlignRight&#39;, &#39;AlignCenter&#39; or &#39;AlignDefault&#39;).</span>
+<span class="sd">    :type alignment: :class:`str`</span>
+<span class="sd">    :param rowspan: number of rows occupied by a cell (height of a cell)</span>
+<span class="sd">    :type rowspan: :class:`int`</span>
+<span class="sd">    :param colspan: number of columns occupied by a cell (width of a cell)</span>
+<span class="sd">    :type colspan: :class:`int`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Element`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;alignment&#39;</span><span class="p">,</span> <span class="s1">&#39;rowspan&#39;</span><span class="p">,</span> <span class="s1">&#39;colspan&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="s1">&#39;AlignDefault&#39;</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">check_group</span><span class="p">(</span><span class="n">alignment</span><span class="p">,</span> <span class="n">TABLE_ALIGNMENT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rowspan</span> <span class="o">=</span> <span class="n">rowspan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colspan</span> <span class="o">=</span> <span class="n">colspan</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rowspan</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Cell rowspan must be positive&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colspan</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Cell colspan must be positive&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TableCell.to_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.TableCell.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">alignment</span><span class="p">},</span> <span class="bp">self</span><span class="o">.</span><span class="n">rowspan</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">colspan</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div></div>
+
+
+<div class="viewcode-block" id="Caption"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.Caption">[docs]</a><span class="k">class</span> <span class="nc">Caption</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Table caption with optional short caption</span>
+
+<span class="sd">    :param args: caption</span>
+<span class="sd">    :type args: :class:`Block`</span>
+<span class="sd">    :param short_caption: Short caption</span>
+<span class="sd">    :type short_caption: :class:`list` of :class:`Inline`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :Base: :class:`Element`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;_short_caption&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">,</span> <span class="s1">&#39;short_caption&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">short_caption</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">short_caption</span> <span class="o">=</span> <span class="n">short_caption</span>
+
+<div class="viewcode-block" id="Caption.to_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.Caption.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">short_caption</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">short_caption</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">short_caption</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">short_caption</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">short_caption</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_short_caption</span>
+
+    <span class="nd">@short_caption</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">short_caption</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">list</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ListContainer</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_short_caption</span> <span class="o">=</span> <span class="n">ListContainer</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="o">=</span><span class="n">Inline</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_short_caption</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;short_caption&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_short_caption</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Constants</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="n">TABLE_ALIGNMENT</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;AlignLeft&#39;</span><span class="p">,</span> <span class="s1">&#39;AlignRight&#39;</span><span class="p">,</span> <span class="s1">&#39;AlignCenter&#39;</span><span class="p">,</span> <span class="s1">&#39;AlignDefault&#39;</span><span class="p">}</span>
+<span class="n">TABLE_WIDTH</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ColWidthDefault&#39;</span><span class="p">}</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Functions</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="count_columns_in_row"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.count_columns_in_row">[docs]</a><span class="k">def</span> <span class="nf">count_columns_in_row</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">colspan</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">row</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="colspec_to_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.colspec_to_json">[docs]</a><span class="k">def</span> <span class="nf">colspec_to_json</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">}</span> <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;ColWidthDefault&#39;</span> <span class="k">else</span> <span class="n">encode_dict</span><span class="p">(</span><span class="s1">&#39;ColWidth&#39;</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cell_from_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.cell_from_json">[docs]</a><span class="k">def</span> <span class="nf">cell_from_json</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">TableCell</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">alignment</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rowspan</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">colspan</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                     <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="row_from_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.row_from_json">[docs]</a><span class="k">def</span> <span class="nf">row_from_json</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">TableRow</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">cell_from_json</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="body_from_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.body_from_json">[docs]</a><span class="k">def</span> <span class="nf">body_from_json</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+    <span class="n">row_head_columns</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">row_from_json</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">row_from_json</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">TableBody</span><span class="p">(</span><span class="o">*</span><span class="n">body</span><span class="p">,</span> <span class="n">head</span><span class="o">=</span><span class="n">head</span><span class="p">,</span> <span class="n">row_head_columns</span><span class="o">=</span><span class="n">row_head_columns</span><span class="p">,</span>
+                     <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="table_from_json"><a class="viewcode-back" href="../../panflute.table_elements.html#panflute.table_elements.table_from_json">[docs]</a><span class="k">def</span> <span class="nf">table_from_json</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+    <span class="c1"># Attr Caption [ColSpec] TableHead [TableBody] TableFoot</span>
+    <span class="n">ica</span> <span class="o">=</span> <span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">caption</span> <span class="o">=</span> <span class="n">Caption</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">short_caption</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">colspec</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">head</span> <span class="o">=</span> <span class="n">TableHead</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">row_from_json</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">bodies</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">body_from_json</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">foot</span> <span class="o">=</span> <span class="n">TableFoot</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">row_from_json</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">Table</span><span class="p">(</span><span class="o">*</span><span class="n">bodies</span><span class="p">,</span> <span class="n">head</span><span class="o">=</span><span class="n">head</span><span class="p">,</span> <span class="n">foot</span><span class="o">=</span><span class="n">foot</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="n">caption</span><span class="p">,</span> <span class="n">colspec</span><span class="o">=</span><span class="n">colspec</span><span class="p">,</span> <span class="o">**</span><span class="n">ica</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">panflute</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.io module &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="panflute.table_elements module" href="panflute.table_elements.html" />
+    <link rel="prev" title="panflute.elements module" href="panflute.elements.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-panflute.io">
+<span id="panflute-io-module"></span><h1>panflute.io module<a class="headerlink" href="#module-panflute.io" title="Permalink to this headline">¶</a></h1>
+<p>I/O related functions</p>
+<dl class="py function">
+<dt id="panflute.io.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">doc</span></em>, <em class="sig-param"><span class="n">output_stream</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/io.html#dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.io.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump a <a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a> object into a JSON-encoded text string.</p>
+<p>The output will be sent to <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stdout" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stdout</span></code></a> unless an alternative
+text stream is given.</p>
+<p>To dump to <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stdout" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stdout</span></code></a> just do:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Doc</span><span class="p">(</span><span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)))</span>  <span class="c1"># Create sample document</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pf</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To dump to file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;some-document.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">pf</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To dump to a  string:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">io</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">pf</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">contents</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doc</strong> (<a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a>) – document, usually created with <a class="reference internal" href="#panflute.io.load" title="panflute.io.load"><code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code></a></p></li>
+<li><p><strong>output_stream</strong> – text stream used as output
+(default is <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stdout" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stdout</span></code></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.io.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_stream</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/io.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.io.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load JSON-encoded document and return a <a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a> element.</p>
+<p>The JSON input will be read from <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stdin" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stdin</span></code></a> unless an alternative
+text stream is given (a file handle).</p>
+<p>To load from a file, you can do:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;some-document.json&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">doc</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To load from a string, you can do:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">io</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">raw</span> <span class="o">=</span> <span class="s1">&#39;[{&quot;unMeta&quot;:</span><span class="si">{}</span><span class="s1">},</span>
+<span class="go">[{&quot;t&quot;:&quot;Para&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;Str&quot;,&quot;c&quot;:&quot;Hello!&quot;}]}]]&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_stream</strong> – text stream used as input
+(default is <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stdin" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stdin</span></code></a>)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.io.run_filter">
+<code class="sig-name descname">run_filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/io.html#run_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.io.run_filter" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Wapper for <a class="reference internal" href="#panflute.io.run_filters" title="panflute.io.run_filters"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_filters()</span></code></a></p>
+</div></blockquote>
+<p>Receive a Pandoc document from stdin, apply the <em>action</em> function to each element, and write it back to stdout.</p>
+<p>See <a class="reference internal" href="#panflute.io.run_filters" title="panflute.io.run_filters"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_filters()</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.io.run_filters">
+<code class="sig-name descname">run_filters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">actions</span></em>, <em class="sig-param"><span class="n">prepare</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">input_stream</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">output_stream</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/io.html#run_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.io.run_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive a Pandoc document from the input stream (default is stdin),
+walk through it applying the functions in <em>actions</em> to each element,
+and write it back to the output stream (default is stdout).</p>
+<p>Notes:</p>
+<ul class="simple">
+<li><p>It receives and writes the Pandoc documents as JSON–encoded strings;
+this is done through the <a class="reference internal" href="#panflute.io.load" title="panflute.io.load"><code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code></a> and <a class="reference internal" href="#panflute.io.dump" title="panflute.io.dump"><code class="xref py py-func docutils literal notranslate"><span class="pre">dump()</span></code></a> functions.</p></li>
+<li><p>It walks through the document once for every function in <em>actions</em>,
+so the actions are applied sequentially.</p></li>
+<li><p>By default, it will read from stdin and write to stdout,
+but these can be modified.</p></li>
+<li><p>It can also apply functions to the entire document at the beginning and
+end; this allows for global operations on the document.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">doc</span></code> is a <a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a> instead of <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">run_filters</span></code>
+will return the document instead of writing it to the output stream.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actions</strong> ([<code class="xref py py-class docutils literal notranslate"><span class="pre">function</span></code>]) – sequence of functions; each function takes (element, doc)
+as argument, so a valid header would be <code class="docutils literal notranslate"><span class="pre">def</span> <span class="pre">action(elem,</span> <span class="pre">doc):</span></code></p></li>
+<li><p><strong>prepare</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">function</span></code>) – function executed at the beginning;
+right after the document is received and parsed</p></li>
+<li><p><strong>finalize</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">function</span></code>) – function executed at the end;
+right before the document is converted back to JSON and written to stdout.</p></li>
+<li><p><strong>input_stream</strong> – text stream used as input
+(default is <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stdin" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stdin</span></code></a>)</p></li>
+<li><p><strong>output_stream</strong> – text stream used as output
+(default is <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stdout" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stdout</span></code></a>)</p></li>
+<li><p><strong>doc</strong> (<code class="docutils literal notranslate"><span class="pre">None</span></code> | <a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">None</span></code> unless running panflute as a filter, in which case this will be a <a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a> element</p></li>
+<li><p><strong>*kwargs</strong> – keyword arguments will be passed through to the <em>action</em>
+functions (so they can actually receive more than just two arguments
+(<em>element</em> and <em>doc</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.io.toJSONFilter">
+<code class="sig-name descname">toJSONFilter</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/io.html#toJSONFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.io.toJSONFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wapper for <a class="reference internal" href="#panflute.io.run_filter" title="panflute.io.run_filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_filter()</span></code></a>, which calls <a class="reference internal" href="#panflute.io.run_filters" title="panflute.io.run_filters"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_filters()</span></code></a></p>
+<p>toJSONFilter(action, prepare=None, finalize=None, input_stream=None, output_stream=None, **kwargs)
+Receive a Pandoc document from stdin, apply the <em>action</em> function to each element, and write it back to stdout.</p>
+<p>See also <a class="reference internal" href="#panflute.io.toJSONFilters" title="panflute.io.toJSONFilters"><code class="xref py py-func docutils literal notranslate"><span class="pre">toJSONFilters()</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.io.toJSONFilters">
+<code class="sig-name descname">toJSONFilters</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/io.html#toJSONFilters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.io.toJSONFilters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for <a class="reference internal" href="#panflute.io.run_filters" title="panflute.io.run_filters"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_filters()</span></code></a></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Contributing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">panflute</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="panflute.html">panflute package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="panflute.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="panflute.html#module-panflute">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">panflute</a><ul>
+  <li><a href="panflute.html">panflute package</a><ul>
+      <li>Previous: <a href="panflute.elements.html" title="previous chapter">panflute.elements module</a></li>
+      <li>Next: <a href="panflute.table_elements.html" title="next chapter">panflute.table_elements module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,7 @@
+panflute.autofilter module
+==========================
+
+.. automodule:: panflute.autofilter
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.autofilter &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for panflute.autofilter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Allow Panflute to be run as a command line executable</span>
+<span class="sd">to be used as a Pandoc filter or used in Pandoctools</span>
+<span class="sd">shell scripts as Pandoc filter with arguments.</span>
+
+<span class="sd">Exports ``main`` and ``panfl``.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">p</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+
+<span class="kn">from</span> <span class="nn">.io</span> <span class="kn">import</span> <span class="n">load</span><span class="p">,</span> <span class="n">dump</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">debug</span><span class="p">,</span> <span class="n">ContextImport</span>
+
+
+<span class="n">reduced_sys_path</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span> <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">))</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span>
+
+
+<div class="viewcode-block" id="get_filter_dirs"><a class="viewcode-back" href="../../panflute.autofilter.html#panflute.autofilter.get_filter_dirs">[docs]</a><span class="k">def</span> <span class="nf">get_filter_dirs</span><span class="p">(</span><span class="n">hardcoded</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return directories where we expect to find filters.</span>
+
+<span class="sd">    If hardcoded=True use paths we know ex ante; if False ask Pandoc for a list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">hardcoded</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;APPDATA&#39;</span><span class="p">])</span>
+            <span class="n">d1</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="s1">&#39;pandoc&#39;</span> <span class="o">/</span> <span class="s1">&#39;filters&#39;</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">d1</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HOME&#39;</span><span class="p">])</span>
+            <span class="n">d1</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="s1">&#39;.pandoc&#39;</span> <span class="o">/</span> <span class="s1">&#39;filters&#39;</span>
+            <span class="n">d2</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="s1">&#39;.local&#39;</span> <span class="o">/</span> <span class="s1">&#39;share&#39;</span> <span class="o">/</span> <span class="s1">&#39;pandoc&#39;</span> <span class="o">/</span> <span class="s1">&#39;filters&#39;</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">d1</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">d2</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">.tools</span> <span class="kn">import</span> <span class="n">run_pandoc</span>
+
+        <span class="c1"># Extract $DATADIR</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">run_pandoc</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;--version&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;User data directory: &quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">info</span> <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">info</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">):]</span>
+
+        <span class="c1"># data_dir might contain multiple folders:</span>
+        <span class="c1"># Default user data directory: /home/runner/.local/share/pandoc or /home/runner/.pandoc/filters</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; or &#39;</span><span class="p">)</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s1">&#39;filters&#39;</span><span class="p">))))</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data_dir</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">data_dir</span></div>
+
+
+<div class="viewcode-block" id="stdio"><a class="viewcode-back" href="../../panflute.autofilter.html#panflute.autofilter.stdio">[docs]</a><span class="k">def</span> <span class="nf">stdio</span><span class="p">(</span><span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">search_dirs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sys_path</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+          <span class="n">panfl_</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">input_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads JSON from stdin and second CLI argument:</span>
+<span class="sd">    ``sys.argv[1]``. Dumps JSON doc to the stdout.</span>
+
+<span class="sd">    :param filters: Union[List[str], None]</span>
+<span class="sd">        if None then read from metadata</span>
+<span class="sd">    :param search_dirs: Union[List[str], None]</span>
+<span class="sd">        if None then read from metadata</span>
+<span class="sd">    :param data_dir: bool</span>
+<span class="sd">    :param sys_path: bool</span>
+<span class="sd">    :param panfl_: bool</span>
+<span class="sd">    :param input_stream: io.StringIO or None</span>
+<span class="sd">        for debug purpose</span>
+<span class="sd">    :param output_stream: io.StringIO or None</span>
+<span class="sd">        for debug purpose</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">input_stream</span><span class="p">)</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="s1">&#39;panflute-verbose&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">search_dirs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># metadata &#39;panflute-path&#39; can be a list, a string, or missing</span>
+        <span class="c1"># `search_dirs` should be a list of str</span>
+        <span class="n">search_dirs</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="s1">&#39;panflute-path&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">search_dirs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">search_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">search_dirs</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;--data-dir&#39;</span> <span class="ow">in</span> <span class="n">search_dirs</span><span class="p">:</span>
+            <span class="n">data_dir</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="s1">&#39;--no-sys-path&#39;</span> <span class="ow">in</span> <span class="n">search_dirs</span><span class="p">:</span>
+            <span class="n">sys_path</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">search_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dir_</span> <span class="k">for</span> <span class="n">dir_</span> <span class="ow">in</span> <span class="n">search_dirs</span>
+                       <span class="k">if</span> <span class="n">dir_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;--data-dir&#39;</span><span class="p">,</span> <span class="s1">&#39;--no-sys-path&#39;</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">debug</span><span class="p">(</span><span class="s1">&#39;panflute: data_dir=</span><span class="si">{}</span><span class="s1"> sys_path=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">sys_path</span><span class="p">))</span>
+    <span class="n">search_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">dir_</span><span class="p">)))</span> <span class="k">for</span> <span class="n">dir_</span> <span class="ow">in</span> <span class="n">search_dirs</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">panfl_</span><span class="p">:</span>
+        <span class="c1"># default panflute behaviour:</span>
+        <span class="n">search_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_dir</span><span class="p">:</span>
+            <span class="n">search_dirs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_filter_dirs</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">sys_path</span><span class="p">:</span>
+            <span class="n">search_dirs</span> <span class="o">+=</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># panfl/pandoctools behaviour:</span>
+        <span class="k">if</span> <span class="n">data_dir</span><span class="p">:</span>
+            <span class="n">search_dirs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_filter_dirs</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">sys_path</span><span class="p">:</span>
+            <span class="n">search_dirs</span> <span class="o">+=</span> <span class="n">reduced_sys_path</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">debug</span><span class="p">(</span><span class="s1">&#39;panflute will search for filters in the following folders:&#39;</span><span class="p">)</span>
+        <span class="n">debug</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">search_dirs</span><span class="p">))</span>
+
+    <span class="c1"># Display message (tests that everything is working ok)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="s1">&#39;panflute-echo&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+        <span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">filters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># metadata &#39;panflute-filters&#39; can be a list, a string, or missing</span>
+        <span class="c1"># `filters` should be a list of str</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="s1">&#39;panflute-filters&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">filters</span> <span class="o">=</span> <span class="p">[</span><span class="n">filters</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">filters</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;panflute: will run the following filters:&quot;</span>
+            <span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filters</span><span class="p">))</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">autorun_filters</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">search_dirs</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;panflute: no filters were provided&quot;</span><span class="p">)</span>
+
+    <span class="n">dump</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output_stream</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../panflute.autofilter.html#panflute.autofilter.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allows Panflute to be run as a command line executable</span>
+<span class="sd">    to be used as a Pandoc filter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stdio</span><span class="p">()</span></div>
+
+
+<span class="n">help_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Allows Panflute to be run as a command line executable:</span>
+
+<span class="s2">* to be used in Pandoctools shell scripts as Pandoc filter with</span>
+<span class="s2">multiple arguments (should have -t/--to option in this case):</span>
+<span class="s2">`pandoc -t json | panfl -t markdown foo.bar | pandoc -f json`</span>
+
+<span class="s2">* to be used as a Pandoc filter (in this case only one positional</span>
+<span class="s2">argument is allowed of all options): `pandoc --filter panfl`</span>
+
+<span class="s2">Filters may be set with or without .py extension.</span>
+<span class="s2">It can be relative or absolutele paths to files or modules specs</span>
+<span class="s2">like `foo.bar`.</span>
+
+<span class="s2">MIND THAT Panflute temporarily prepends folder of the filter</span>
+<span class="s2">(or relevant dir provided if module spec) TO THE `sys.path` before</span>
+<span class="s2">importing the filter!</span>
+
+<span class="s2">Search preserves directories order (except for --data-dir and</span>
+<span class="s2">`sys.path`).</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="n">help_str</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;filters&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-w&#39;</span><span class="p">,</span> <span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="s1">&#39;--write&#39;</span><span class="p">,</span> <span class="s1">&#39;--to&#39;</span><span class="p">,</span> <span class="s1">&#39;to&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Derivative of Pandoc writer option that Pandoc passes to filters.&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--dir&#39;</span><span class="p">,</span> <span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="s1">&#39;search_dirs&#39;</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Search filters in provided directories: `-d dir1 -d dir2`.&quot;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--data-dir&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Search filters in default user data directory listed in `pandoc --version` &quot;</span> <span class="o">+</span>
+                   <span class="s2">&quot;(in it&#39;s `filters` subfolder actually). It&#39;s appended to the search list.&quot;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--no-sys-path&#39;</span><span class="p">,</span> <span class="s1">&#39;sys_path&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Disable search filters in python&#39;s `sys.path` (without &#39;&#39; and &#39;.&#39;) &quot;</span> <span class="o">+</span>
+                   <span class="s2">&quot;that is appended to the search list.&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">panfl</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">search_dirs</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">sys_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allows Panflute to be run as a command line executable:</span>
+
+<span class="sd">    * to be used in Pandoctools shell scripts as Pandoc filter with</span>
+<span class="sd">      multiple arguments (should have -t/--to option in this case):</span>
+<span class="sd">      ``pandoc -t json | panfl -t markdown foo.bar | pandoc -f json``</span>
+
+<span class="sd">    * to be used as a Pandoc filter (in this case only one positional</span>
+<span class="sd">      argument is allowed of all options):</span>
+<span class="sd">      ``pandoc --filter panfl``</span>
+
+<span class="sd">    MIND THAT Panflute temporarily prepends folder of the filter</span>
+<span class="sd">    (or relevant dir provided if module spec) TO THE `sys.path` before</span>
+<span class="sd">    importing the filter!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">search_dirs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">sys_path</span> <span class="ow">or</span> <span class="n">data_dir</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;When no `--to` option then Pandoc filter mode assumed and &#39;</span> <span class="o">+</span>
+                             <span class="s1">&#39;only one positional argument is allowed of all options.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filters</span><span class="p">,</span> <span class="n">search_dirs</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="n">sys_path</span><span class="p">,</span> <span class="n">data_dir</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">filters</span><span class="p">,</span> <span class="n">search_dirs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">filters</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">search_dirs</span><span class="p">)</span>
+        <span class="c1"># `load()` in `stdio()` needs `to` in the 2nd arg</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">to</span><span class="p">)</span>
+
+    <span class="n">stdio</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">search_dirs</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">sys_path</span><span class="p">,</span> <span class="n">panfl_</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="autorun_filters"><a class="viewcode-back" href="../../panflute.autofilter.html#panflute.autofilter.autorun_filters">[docs]</a><span class="k">def</span> <span class="nf">autorun_filters</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">search_dirs</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param filters: list of str</span>
+<span class="sd">    :param doc: panflute.Doc</span>
+<span class="sd">    :param search_dirs: list of str</span>
+<span class="sd">    :param verbose: bool</span>
+<span class="sd">    :return: panflute.Doc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">remove_py</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">s</span>
+
+    <span class="n">filter_paths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">filter_</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">:</span>
+        <span class="n">filter_exp</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">filter_</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">filter_exp</span> <span class="o">==</span> <span class="n">remove_py</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filter_exp</span><span class="p">))</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">):</span>
+            <span class="c1"># import .foo  # is not supported</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">mod_path</span> <span class="o">=</span> <span class="n">filter_exp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+            <span class="n">path_postfixes</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mod_path</span><span class="p">,</span> <span class="s1">&#39;__init__.py&#39;</span><span class="p">),</span> <span class="n">mod_path</span> <span class="o">+</span> <span class="s1">&#39;.py&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># allow with and without .py ending</span>
+            <span class="n">path_postfixes</span> <span class="o">=</span> <span class="p">(</span><span class="n">remove_py</span><span class="p">(</span><span class="n">filter_exp</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.py&#39;</span><span class="p">,)</span>
+
+        <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">path_postf</span> <span class="ow">in</span> <span class="p">[(</span><span class="n">path</span><span class="p">,</span> <span class="n">path_postf</span><span class="p">)</span>
+                                 <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">search_dirs</span>
+                                 <span class="k">for</span> <span class="n">path_postf</span> <span class="ow">in</span> <span class="n">path_postfixes</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">path_postf</span><span class="p">):</span>
+                <span class="n">filter_path</span> <span class="o">=</span> <span class="n">path_postf</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">filter_path</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">path_postf</span><span class="p">)))</span>
+
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filter_path</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;panflute: filter &quot;</span><span class="si">{</span><span class="n">filter_</span><span class="si">}</span><span class="s1">&quot; found in </span><span class="si">{</span><span class="n">filter_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">module</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">path</span> <span class="ow">in</span> <span class="n">reduced_sys_path</span><span class="p">):</span>
+                    <span class="n">extra_dir</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                    <span class="c1"># `path` already doesn&#39;t contain `.`, `..`, env vars or `~`</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">extra_dir</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">module_</span> <span class="o">=</span> <span class="n">filter_exp</span> <span class="k">if</span> <span class="n">module</span> <span class="k">else</span> <span class="n">filter_path</span>
+
+                <span class="n">filter_paths</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">filter_</span><span class="p">,</span> <span class="n">filter_path</span><span class="p">,</span> <span class="n">module_</span><span class="p">,</span> <span class="n">extra_dir</span><span class="p">))</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">p</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">path_postf</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;          filter &quot;</span><span class="si">{</span><span class="n">filter_</span><span class="si">}</span><span class="s1">&quot; NOT found in </span><span class="si">{</span><span class="n">filter_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;filter not found: &quot;</span> <span class="o">+</span> <span class="n">filter_</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;          filter &quot;</span><span class="si">{</span><span class="n">filter_</span><span class="si">}</span><span class="s1">&quot; NOT found in </span><span class="si">{</span><span class="n">filter_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;filter not found: &quot;</span> <span class="o">+</span> <span class="n">filter_</span><span class="p">)</span>
+
+    <span class="c1"># Intercept any print() statements made by filters (which would cause Pandoc to fail)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">alt_stdout</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">filter_</span><span class="p">,</span> <span class="n">filter_path</span><span class="p">,</span> <span class="n">module_</span><span class="p">,</span> <span class="n">extra_dir</span> <span class="ow">in</span> <span class="n">filter_paths</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;panflute: running filter &lt;</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filter_</span><span class="p">))</span>
+        <span class="k">with</span> <span class="n">ContextImport</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="n">extra_dir</span><span class="p">)</span> <span class="k">as</span> <span class="n">module</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">module</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Failed to run filter: &quot;</span> <span class="o">+</span> <span class="n">filter_</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s1">&#39;main&#39;</span><span class="p">):</span>
+                    <span class="n">debug</span><span class="p">(</span><span class="s1">&#39; - Possible cause: filter lacks a main() function&#39;</span><span class="p">)</span>
+                <span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Filter code:&#39;</span><span class="p">)</span>
+                <span class="n">debug</span><span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">64</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filter_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                    <span class="n">debug</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                <span class="n">debug</span><span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">64</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;panflute: filter &lt;</span><span class="si">{}</span><span class="s2">&gt; completed&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filter_</span><span class="p">))</span>
+
+        <span class="n">alt_stdout_data</span> <span class="o">=</span> <span class="n">alt_stdout</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">alt_stdout_data</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Panflute Warning: filter &quot;</span><span class="si">{</span><span class="n">filter_</span><span class="si">}</span><span class="s1">&quot; wrote to stdout, &#39;</span><span class="p">,</span>
+                <span class="s1">&#39;but Pandoc does not allow that&#39;</span><span class="p">)</span>
+            <span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">debug</span><span class="p">(</span><span class="n">alt_stdout_data</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">alt_stdout</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+
+    <span class="c1"># Restore stdout</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdout__</span>
+
+    <span class="k">return</span> <span class="n">doc</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">panflute</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,1509 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.elements &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for panflute.elements</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Classes corresponding to Pandoc elements</span>
+
+<span class="sd">Notation:</span>
+<span class="sd">- &quot;ica&quot; is shorthand for &quot;identifier, classes, attributes&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Imports</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">check_type</span><span class="p">,</span> <span class="n">check_group</span><span class="p">,</span> <span class="n">encode_dict</span><span class="p">,</span> <span class="n">decode_ica</span><span class="p">,</span> <span class="n">debug</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">load_pandoc_version</span><span class="p">,</span> <span class="n">load_pandoc_reader_options</span>
+<span class="kn">from</span> <span class="nn">.containers</span> <span class="kn">import</span> <span class="n">ListContainer</span><span class="p">,</span> <span class="n">DictContainer</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Block</span><span class="p">,</span> <span class="n">Inline</span><span class="p">,</span> <span class="n">MetaValue</span>
+<span class="kn">from</span> <span class="nn">.table_elements</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Table</span><span class="p">,</span> <span class="n">TableHead</span><span class="p">,</span> <span class="n">TableFoot</span><span class="p">,</span> <span class="n">TableBody</span><span class="p">,</span> <span class="n">TableRow</span><span class="p">,</span> <span class="n">TableCell</span><span class="p">,</span> <span class="n">Caption</span><span class="p">,</span>
+    <span class="n">TABLE_ALIGNMENT</span><span class="p">,</span> <span class="n">TABLE_WIDTH</span><span class="p">,</span> <span class="n">table_from_json</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Special Root Class</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="c1"># RUN ALL WITH PYCCO</span>
+
+<div class="viewcode-block" id="Doc"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Doc">[docs]</a><span class="k">class</span> <span class="nc">Doc</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pandoc document container.</span>
+
+<span class="sd">    Besides the document, it includes the frontpage metadata and the</span>
+<span class="sd">    desired output format. Filter functions can also add properties to it</span>
+<span class="sd">    as means of global variables that can later be read by different calls.</span>
+
+<span class="sd">    :param args: top--level documents contained in the document</span>
+<span class="sd">    :type args: :class:`Block` sequence</span>
+<span class="sd">    :param metadata: the frontpage metadata</span>
+<span class="sd">    :type metadata: ``dict``</span>
+<span class="sd">    :param format: output format, such as &#39;markdown&#39;, &#39;latex&#39; and &#39;html&#39;</span>
+<span class="sd">    :type format: ``str``</span>
+<span class="sd">    :param api_version: A tuple of three ints of the form (1, 18, 0)</span>
+<span class="sd">    :type api_version: ``tuple``</span>
+<span class="sd">    :return: Document with base class :class:`Element`</span>
+<span class="sd">    :Base: :class:`Element`</span>
+
+<span class="sd">    :Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; meta = {&#39;author&#39;:&#39;John Doe&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; content = [Header(Str(&#39;Title&#39;)), Para(Str(&#39;Hello!&#39;))]</span>
+<span class="sd">        &gt;&gt;&gt; doc = Doc(*content, metadata=meta, format=&#39;pdf&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; doc.figure_count = 0 #  You can add attributes freely</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="p">{},</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;html&#39;</span><span class="p">,</span> <span class="n">api_version</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">22</span><span class="p">)):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="nb">format</span>  <span class="c1"># Output format</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">api_version</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">check_type</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">api_version</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid api version; using an older version of Pandoc?&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api_version</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_version</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">22</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid api version&quot;</span><span class="p">,</span> <span class="n">api_version</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pandoc_version</span> <span class="o">=</span> <span class="n">load_pandoc_version</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pandoc_reader_options</span> <span class="o">=</span> <span class="n">load_pandoc_reader_options</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;metadata&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span>
+
+    <span class="nd">@metadata</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">content</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">MetaMap</span><span class="p">)</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="o">=</span> <span class="n">MetaMap</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Doc.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Doc.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Overrides default method</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;pandoc-api-version&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_version</span><span class="p">,</span>
+            <span class="s1">&#39;meta&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span>
+            <span class="s1">&#39;blocks&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span>
+        <span class="p">}</span></div></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Classes - Empty</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="Null"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Null">[docs]</a><span class="k">class</span> <span class="nc">Null</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Nothing</span>
+
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Null.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Null.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="s1">&#39;Null&#39;</span><span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="Space"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Space">[docs]</a><span class="k">class</span> <span class="nc">Space</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Inter-word space</span>
+
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Space.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Space.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="s1">&#39;Space&#39;</span><span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="HorizontalRule"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.HorizontalRule">[docs]</a><span class="k">class</span> <span class="nc">HorizontalRule</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Horizontal rule</span>
+
+<span class="sd">     :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="HorizontalRule.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.HorizontalRule.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="s1">&#39;HorizontalRule&#39;</span><span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="SoftBreak"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.SoftBreak">[docs]</a><span class="k">class</span> <span class="nc">SoftBreak</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Soft line break</span>
+
+<span class="sd">     :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="SoftBreak.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.SoftBreak.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="s1">&#39;SoftBreak&#39;</span><span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="LineBreak"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.LineBreak">[docs]</a><span class="k">class</span> <span class="nc">LineBreak</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Hard line break</span>
+
+<span class="sd">     :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="LineBreak.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.LineBreak.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="s1">&#39;LineBreak&#39;</span><span class="p">}</span></div></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Classes - Simple Containers</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="Plain"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Plain">[docs]</a><span class="k">class</span> <span class="nc">Plain</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plain text, not a paragraph</span>
+
+<span class="sd">    :param args: contents of the plain block of text</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Para"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Para">[docs]</a><span class="k">class</span> <span class="nc">Para</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Paragraph</span>
+
+<span class="sd">    :param args: contents of the paragraph</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+
+<span class="sd">    :Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; content = [Str(&#39;Some&#39;), Space, Emph(Str(&#39;words.&#39;))]</span>
+<span class="sd">        &gt;&gt;&gt; para1 = Para(*content)</span>
+<span class="sd">        &gt;&gt;&gt; para2 = Para(Str(&#39;More&#39;), Space, Str(&#39;words.&#39;))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="BlockQuote"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.BlockQuote">[docs]</a><span class="k">class</span> <span class="nc">BlockQuote</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Block quote</span>
+
+<span class="sd">    :param args: sequence of blocks</span>
+<span class="sd">    :type args: :class:`Block`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Emph"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Emph">[docs]</a><span class="k">class</span> <span class="nc">Emph</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Emphasized text</span>
+
+<span class="sd">    :param args: elements that will be emphasized</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Strong"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Strong">[docs]</a><span class="k">class</span> <span class="nc">Strong</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Strongly emphasized text</span>
+
+<span class="sd">    :param args: elements that will be emphasized</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Underline"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Underline">[docs]</a><span class="k">class</span> <span class="nc">Underline</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Underlined text</span>
+
+<span class="sd">    :param args: elements that will be underlined</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Strikeout"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Strikeout">[docs]</a><span class="k">class</span> <span class="nc">Strikeout</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Strikeout text</span>
+
+<span class="sd">    :param args: elements that will be striken out</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Superscript"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Superscript">[docs]</a><span class="k">class</span> <span class="nc">Superscript</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Superscripted text (list of inlines)</span>
+
+<span class="sd">    :param args: elements that will be set superscript</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Subscript"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Subscript">[docs]</a><span class="k">class</span> <span class="nc">Subscript</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Subscripted text (list of inlines)</span>
+
+<span class="sd">    :param args: elements that will be set suberscript</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SmallCaps"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.SmallCaps">[docs]</a><span class="k">class</span> <span class="nc">SmallCaps</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Small caps text (list of inlines)</span>
+
+<span class="sd">    :param args: elements that will be set with small caps</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Note"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Note">[docs]</a><span class="k">class</span> <span class="nc">Note</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Footnote or endnote</span>
+
+<span class="sd">    :param args: elements that are part of the note</span>
+<span class="sd">    :type args: :class:`Block`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Classes - Complex Containers</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="Header"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Header">[docs]</a><span class="k">class</span> <span class="nc">Header</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Header</span>
+
+<span class="sd">    :param args: contents of the header</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :param level: level of the header (1 is the largest and 6 the smallest)</span>
+<span class="sd">    :type level: ``int``</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+
+<span class="sd">    :Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; title = [Str(&#39;Monty&#39;), Space, Str(&#39;Python&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; header = Header(*title, level=2, identifier=&#39;toc&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; header.level += 1</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">,</span> <span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Header level not between 1 and 10&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div>
+
+
+<div class="viewcode-block" id="Div"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Div">[docs]</a><span class="k">class</span> <span class="nc">Div</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generic block container with attributes</span>
+
+<span class="sd">    :param args: contents of the div</span>
+<span class="sd">    :type args: :class:`Block`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div>
+
+
+<div class="viewcode-block" id="Span"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Span">[docs]</a><span class="k">class</span> <span class="nc">Span</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generic block container with attributes</span>
+
+<span class="sd">    :param args: contents of the div</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div>
+
+
+<div class="viewcode-block" id="Quoted"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Quoted">[docs]</a><span class="k">class</span> <span class="nc">Quoted</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Quoted text</span>
+
+<span class="sd">    :param args: contents of the quote</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :param quote_type: either &#39;SingleQuote&#39; or &#39;DoubleQuote&#39;</span>
+<span class="sd">    :type quote_type: ``str``</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;quote_type&#39;</span><span class="p">,</span> <span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">quote_type</span><span class="o">=</span><span class="s1">&#39;DoubleQuote&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quote_type</span> <span class="o">=</span> <span class="n">check_group</span><span class="p">(</span><span class="n">quote_type</span><span class="p">,</span> <span class="n">QUOTE_TYPES</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">quote_type</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">quote_type</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">quote_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">quote_type</span> <span class="o">=</span> <span class="n">encode_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quote_type</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">quote_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div>
+
+
+<div class="viewcode-block" id="Cite"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Cite">[docs]</a><span class="k">class</span> <span class="nc">Cite</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Cite: set of citations with related text</span>
+
+<span class="sd">    :param args: contents of the cite (the raw text)</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :param citations: sequence of citations</span>
+<span class="sd">    :type citations: [:class:`Citation`]</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;_citations&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">,</span> <span class="s1">&#39;citations&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">citations</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">citations</span> <span class="o">=</span> <span class="n">citations</span>
+
+    <span class="c1"># Cannot access citations directly b/c that would mess up .parent</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">citations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_citations</span>
+
+    <span class="nd">@citations</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">citations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">list</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ListContainer</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_citations</span> <span class="o">=</span> <span class="n">ListContainer</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="o">=</span><span class="n">Citation</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_citations</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;citations&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">citations</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div>
+
+
+<div class="viewcode-block" id="Citation"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Citation">[docs]</a><span class="k">class</span> <span class="nc">Citation</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A single citation to a single work</span>
+
+<span class="sd">    :param id: citation key (e.g. the bibtex keyword)</span>
+<span class="sd">    :type id: ``str``</span>
+<span class="sd">    :param mode: how will the citation appear (&#39;NormalCitation&#39; for the</span>
+<span class="sd">        default style, &#39;AuthorInText&#39; to exclude parenthesis,</span>
+<span class="sd">        &#39;SuppressAuthor&#39; to exclude the author&#39;s name)</span>
+<span class="sd">    :type mode: ``str``</span>
+<span class="sd">    :param prefix: Text before the citation reference</span>
+<span class="sd">    :type prefix: [:class:`Inline`]</span>
+<span class="sd">    :param suffix: Text after the citation reference</span>
+<span class="sd">    :type suffix: [:class:`Inline`]</span>
+<span class="sd">    :param note_num: (Not sure...)</span>
+<span class="sd">    :type note_num: ``int``</span>
+<span class="sd">    :param hash: (Not sure...)</span>
+<span class="sd">    :type hash: ``int``</span>
+<span class="sd">    :Base: :class:`Element`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;_prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;_suffix&#39;</span><span class="p">,</span> <span class="s1">&#39;note_num&#39;</span><span class="p">,</span> <span class="s1">&#39;hash&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;suffix&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;NormalCitation&#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                 <span class="nb">hash</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">note_num</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">check_group</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">CITATION_MODE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hash</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="nb">hash</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">note_num</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">note_num</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span>
+
+    <span class="nd">@prefix</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">list</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ListContainer</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="n">ListContainer</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="o">=</span><span class="n">Inline</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;prefix&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span>
+
+    <span class="nd">@suffix</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">list</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ListContainer</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">ListContainer</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="o">=</span><span class="n">Inline</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;suffix&#39;</span>
+
+<div class="viewcode-block" id="Citation.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Citation.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Replace default .to_json ; we don&#39;t need _slots_to_json()</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;citationSuffix&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span>
+            <span class="s1">&#39;citationNoteNum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">note_num</span><span class="p">,</span>
+            <span class="s1">&#39;citationMode&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">},</span>
+            <span class="s1">&#39;citationPrefix&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span>
+            <span class="s1">&#39;citationId&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s1">&#39;citationHash&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="Citation.to_json_legacy"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Citation.to_json_legacy">[docs]</a>    <span class="k">def</span> <span class="nf">to_json_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Replace default .to_json ; we don&#39;t need _slots_to_json()</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;citationSuffix&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span>
+            <span class="s1">&#39;citationNoteNum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">note_num</span><span class="p">,</span>
+            <span class="s1">&#39;citationMode&#39;</span><span class="p">:</span> <span class="n">encode_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="s1">&#39;citationPrefix&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span>
+            <span class="s1">&#39;citationId&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s1">&#39;citationHash&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span>
+        <span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="Link"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Link">[docs]</a><span class="k">class</span> <span class="nc">Link</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hyperlink</span>
+
+<span class="sd">    :param args: text with the link description</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :param url: URL or path of the link</span>
+<span class="sd">    :type url: ``str``</span>
+<span class="sd">    :param title: Alt. title</span>
+<span class="sd">    :type title: ``str``</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                 <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ut</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span> <span class="n">ut</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Image"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Image">[docs]</a><span class="k">class</span> <span class="nc">Image</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Image</span>
+
+<span class="sd">    :param args: text with the image description</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :param url: URL or path of the image</span>
+<span class="sd">    :type url: ``str``</span>
+<span class="sd">    :param title: Alt. title</span>
+<span class="sd">    :type title: ``str``</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                 <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ut</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span> <span class="n">ut</span><span class="p">]</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Classes - Text</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="Str"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Str">[docs]</a><span class="k">class</span> <span class="nc">Str</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Text (a string)</span>
+
+<span class="sd">    :param text: a string of unformatted text</span>
+<span class="sd">    :type text: :class:`str`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Str(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span></div>
+
+
+<div class="viewcode-block" id="CodeBlock"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.CodeBlock">[docs]</a><span class="k">class</span> <span class="nc">CodeBlock</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Code block (literal text) with optional attributes</span>
+
+<span class="sd">    :param text: literal text (preformatted text, code, etc.)</span>
+<span class="sd">    :type text: :class:`str`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="RawBlock"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.RawBlock">[docs]</a><span class="k">class</span> <span class="nc">RawBlock</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raw block</span>
+
+<span class="sd">    :param text: a string of raw text with another underlying format</span>
+<span class="sd">    :type text: :class:`str`</span>
+<span class="sd">    :param format: Format of the raw text (&#39;html&#39;, &#39;tex&#39;, &#39;latex&#39;, &#39;context&#39;, etc.)</span>
+<span class="sd">    :type format: ``str``</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;format&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;html&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">check_group</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="n">RAW_FORMATS</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Code"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Code">[docs]</a><span class="k">class</span> <span class="nc">Code</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inline code (literal)</span>
+
+<span class="sd">    :param text: literal text (preformatted text, code, etc.)</span>
+<span class="sd">    :type text: :class:`str`</span>
+<span class="sd">    :param identifier: element identifier (usually unique)</span>
+<span class="sd">    :type identifier: :class:`str`</span>
+<span class="sd">    :param classes: class names of the element</span>
+<span class="sd">    :type classes: :class:`list` of :class:`str`</span>
+<span class="sd">    :param attributes: additional attributes</span>
+<span class="sd">    :type attributes: :class:`dict`</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;identifier&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">classes</span><span class="o">=</span><span class="p">[],</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_ica</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ica</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ica_to_json</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ica</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Math"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Math">[docs]</a><span class="k">class</span> <span class="nc">Math</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;TeX math (literal)</span>
+
+<span class="sd">    :param text: a string of raw text representing TeX math</span>
+<span class="sd">    :type text: :class:`str`</span>
+<span class="sd">    :param format: How the math will be typeset (&#39;DisplayMath&#39; or &#39;InlineMath&#39;)</span>
+<span class="sd">    :type format: ``str``</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;format&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;DisplayMath&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">check_group</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="n">MATH_FORMATS</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">format</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">format</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">format</span> <span class="o">=</span> <span class="n">encode_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">format</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="RawInline"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.RawInline">[docs]</a><span class="k">class</span> <span class="nc">RawInline</span><span class="p">(</span><span class="n">Inline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Raw inline text</span>
+
+<span class="sd">    :param text: a string of raw text with another underlying format</span>
+<span class="sd">    :type text: :class:`str`</span>
+<span class="sd">    :param format: Format of the raw text (&#39;html&#39;, &#39;tex&#39;, &#39;latex&#39;, &#39;context&#39;, etc.)</span>
+<span class="sd">    :type format: ``str``</span>
+<span class="sd">    :Base: :class:`Inline`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;format&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;html&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">check_group</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="n">RAW_FORMATS</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">]</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Classes - Lists</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="ListItem"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.ListItem">[docs]</a><span class="k">class</span> <span class="nc">ListItem</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;List item (contained in bullet lists and ordered lists)</span>
+
+<span class="sd">    :param args: List item</span>
+<span class="sd">    :type args: :class:`Block`</span>
+<span class="sd">    :Base: :class:`Element`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ListItem.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.ListItem.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="BulletList"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.BulletList">[docs]</a><span class="k">class</span> <span class="nc">BulletList</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bullet list (unordered list)</span>
+
+<span class="sd">    :param args: List item</span>
+<span class="sd">    :type args: :class:`ListItem` | ``list``</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">ListItem</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OrderedList"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.OrderedList">[docs]</a><span class="k">class</span> <span class="nc">OrderedList</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Ordered list (attributes and a list of items, each a list of blocks)</span>
+
+<span class="sd">    :param args: List item</span>
+<span class="sd">    :type args: :class:`ListItem` | ``list``</span>
+<span class="sd">    :param start: Starting value of the list</span>
+<span class="sd">    :type start: :class:`int`</span>
+<span class="sd">    :param style: Style of the number delimiter</span>
+<span class="sd">        (&#39;DefaultStyle&#39;, &#39;Example&#39;, &#39;Decimal&#39;, &#39;LowerRoman&#39;,</span>
+<span class="sd">        &#39;UpperRoman&#39;, &#39;LowerAlpha&#39;, &#39;UpperAlpha&#39;)</span>
+<span class="sd">    :type style: :class:`str`</span>
+<span class="sd">    :param delimiter: List number delimiter</span>
+<span class="sd">        (&#39;DefaultDelim&#39;, &#39;Period&#39;, &#39;OneParen&#39;, &#39;TwoParens&#39;)</span>
+<span class="sd">    :type delimiter: :class:`str`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;delimiter&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;Decimal&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;Period&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">ListItem</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">style</span> <span class="o">=</span> <span class="n">check_group</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">LIST_NUMBER_STYLES</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="o">=</span> <span class="n">check_group</span><span class="p">(</span><span class="n">delimiter</span><span class="p">,</span> <span class="n">LIST_NUMBER_DELIMITERS</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">}</span>
+        <span class="n">delimiter</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">}</span>
+        <span class="n">ssd</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ssd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">encode_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">delimiter</span> <span class="o">=</span> <span class="n">encode_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">ssd</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ssd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div>
+
+
+<div class="viewcode-block" id="Definition"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Definition">[docs]</a><span class="k">class</span> <span class="nc">Definition</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The definition (description); used in a definition list.</span>
+<span class="sd">    It can include code and all other block elements.</span>
+
+<span class="sd">    :param args: elements</span>
+<span class="sd">    :type args: :class:`Block`</span>
+<span class="sd">    :Base: :class:`Element`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Definition.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.Definition.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="DefinitionItem"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.DefinitionItem">[docs]</a><span class="k">class</span> <span class="nc">DefinitionItem</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Contains pairs of Term and Definitions (plural!)</span>
+
+<span class="sd">    Each list item represents a pair of i) a term</span>
+<span class="sd">    (a list of inlines) and ii) one or more definitions</span>
+
+
+<span class="sd">    :param term: Term of the definition (an inline holder)</span>
+<span class="sd">    :type term: [:class:`Inline`]</span>
+<span class="sd">    :param definitions: List of definitions or descriptions</span>
+<span class="sd">        (each a block holder)</span>
+<span class="sd">    :type definition: [:class:`Definition`]</span>
+<span class="sd">    :Base: :class:`Element`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_term&#39;</span><span class="p">,</span> <span class="s1">&#39;_definitions&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;term&#39;</span><span class="p">,</span> <span class="s1">&#39;definitions&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">definitions</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term</span> <span class="o">=</span> <span class="n">term</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">definitions</span> <span class="o">=</span> <span class="n">definitions</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">term</span>
+        <span class="n">definitions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">definitions</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">(</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">definitions</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">term</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_term</span>
+
+    <span class="nd">@term</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">list</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ListContainer</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_term</span> <span class="o">=</span> <span class="n">ListContainer</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="o">=</span><span class="n">Inline</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_term</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;term&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span>
+
+    <span class="nd">@definitions</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">list</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ListContainer</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span> <span class="o">=</span> <span class="n">ListContainer</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">,</span>
+                                          <span class="n">oktypes</span><span class="o">=</span><span class="n">Definition</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="s1">&#39;definitions&#39;</span>
+
+<div class="viewcode-block" id="DefinitionItem.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.DefinitionItem.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">definitions</span><span class="o">.</span><span class="n">to_json</span><span class="p">()]</span></div></div>
+
+
+<div class="viewcode-block" id="DefinitionList"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.DefinitionList">[docs]</a><span class="k">class</span> <span class="nc">DefinitionList</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Definition list: list of definition items; basically (term, definition)</span>
+<span class="sd">    tuples.</span>
+
+<span class="sd">    Each list item represents a pair of i) a term</span>
+<span class="sd">    (a list of inlines) and ii) one or more definitions (each a list of blocks)</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; term1 = [Str(&#39;Spam&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; def1 = Definition(Para(Str(&#39;...emails&#39;)))</span>
+<span class="sd">        &gt;&gt;&gt; def2 = Definition(Para(Str(&#39;...meat&#39;)))</span>
+<span class="sd">        &gt;&gt;&gt; spam = DefinitionItem(term1, [def1, def2])</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; term2 = [Str(&#39;Spanish&#39;), Space, Str(&#39;Inquisition&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; def3 = Definition(Para(Str(&#39;church&#39;), Space, Str(&#39;court&#39;)))</span>
+<span class="sd">        &gt;&gt;&gt; inquisition = DefinitionItem(term=term2, definitions=[def3])</span>
+<span class="sd">        &gt;&gt;&gt; definition_list = DefinitionList(spam, inquisition)</span>
+
+<span class="sd">    :param args: Definition items (a term with definitions)</span>
+<span class="sd">    :type args: :class:`DefinitionItem`</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">DefinitionItem</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="LineItem"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.LineItem">[docs]</a><span class="k">class</span> <span class="nc">LineItem</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Line item (contained in line blocks)</span>
+
+<span class="sd">    :param args: Line item</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`Element`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LineItem.to_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.LineItem.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="LineBlock"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.LineBlock">[docs]</a><span class="k">class</span> <span class="nc">LineBlock</span><span class="p">(</span><span class="n">Block</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Line block (sequence of lines)</span>
+
+<span class="sd">    :param args: Line item</span>
+<span class="sd">    :type args: :class:`LineItem` | ``list``</span>
+<span class="sd">    :Base: :class:`Block`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">LineItem</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Classes - Metadata</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="MetaList"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.MetaList">[docs]</a><span class="k">class</span> <span class="nc">MetaList</span><span class="p">(</span><span class="n">MetaValue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Metadata list container</span>
+
+<span class="sd">    :param args: contents of a metadata list</span>
+<span class="sd">    :type args: :class:`MetaValue`</span>
+<span class="sd">    :Base: :class:`MetaValue`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">builtin2meta</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MetaValue</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">builtin2meta</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MetaList.append"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.MetaList.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="MetaMap"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.MetaMap">[docs]</a><span class="k">class</span> <span class="nc">MetaMap</span><span class="p">(</span><span class="n">MetaValue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Metadata container for ordered dicts</span>
+
+<span class="sd">    :param args: (key, value) tuples</span>
+<span class="sd">    :type args: :class:`MetaValue`</span>
+<span class="sd">    :param kwargs: named arguments</span>
+<span class="sd">    :type kwargs: :class:`MetaValue`</span>
+<span class="sd">    :Base: :class:`MetaValue`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">builtin2meta</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_content</span> <span class="o">=</span> <span class="n">DictContainer</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">oktypes</span><span class="o">=</span><span class="n">MetaValue</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Map of :class:`MetaValue` objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_content</span>
+
+    <span class="nd">@content</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_content</span> <span class="o">=</span> <span class="n">DictContainer</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="o">=</span><span class="n">MetaValue</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="c1"># These two are convenience functions, not sure if really needed...</span>
+    <span class="c1"># (they save typing the .content and converting to metavalues)</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">builtin2meta</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span></div>
+
+
+<div class="viewcode-block" id="MetaInlines"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.MetaInlines">[docs]</a><span class="k">class</span> <span class="nc">MetaInlines</span><span class="p">(</span><span class="n">MetaValue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    MetaInlines: list of arbitrary inlines within the metadata</span>
+
+<span class="sd">    :param args: sequence of inline elements</span>
+<span class="sd">    :type args: :class:`Inline`</span>
+<span class="sd">    :Base: :class:`MetaValue`</span>
+
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Inline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MetaBlocks"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.MetaBlocks">[docs]</a><span class="k">class</span> <span class="nc">MetaBlocks</span><span class="p">(</span><span class="n">MetaValue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    MetaBlocks: list of arbitrary blocks within the metadata</span>
+
+<span class="sd">    :param args: sequence of block elements</span>
+<span class="sd">    :type args: :class:`Block`</span>
+<span class="sd">    :Base: :class:`MetaValue`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_content&#39;</span><span class="p">]</span>
+    <span class="n">_children</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_content</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Block</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MetaString"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.MetaString">[docs]</a><span class="k">class</span> <span class="nc">MetaString</span><span class="p">(</span><span class="n">MetaValue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Text (a string)</span>
+
+<span class="sd">    :param text: a string of unformatted text</span>
+<span class="sd">    :type text: :class:`str`</span>
+<span class="sd">    :Base: :class:`MetaValue`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="c1"># Note: this is the same as the Str class but with a MetaValue parent</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;MetaString(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span></div>
+
+
+<div class="viewcode-block" id="MetaBool"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.MetaBool">[docs]</a><span class="k">class</span> <span class="nc">MetaBool</span><span class="p">(</span><span class="n">MetaValue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container for True/False metadata values</span>
+
+<span class="sd">    :param boolean: True/False value</span>
+<span class="sd">    :type boolean: :class:`bool`</span>
+<span class="sd">    :Base: :class:`MetaValue`</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;boolean&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boolean</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boolean</span> <span class="o">=</span> <span class="n">check_type</span><span class="p">(</span><span class="n">boolean</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;MetaBool(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boolean</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_slots_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boolean</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Constants</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="n">LIST_NUMBER_STYLES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;DefaultStyle&#39;</span><span class="p">,</span> <span class="s1">&#39;Example&#39;</span><span class="p">,</span> <span class="s1">&#39;Decimal&#39;</span><span class="p">,</span> <span class="s1">&#39;LowerRoman&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;UpperRoman&#39;</span><span class="p">,</span> <span class="s1">&#39;LowerAlpha&#39;</span><span class="p">,</span> <span class="s1">&#39;UpperAlpha&#39;</span>
+<span class="p">}</span>
+
+<span class="n">LIST_NUMBER_DELIMITERS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;DefaultDelim&#39;</span><span class="p">,</span> <span class="s1">&#39;Period&#39;</span><span class="p">,</span> <span class="s1">&#39;OneParen&#39;</span><span class="p">,</span> <span class="s1">&#39;TwoParens&#39;</span><span class="p">}</span>
+
+<span class="n">QUOTE_TYPES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;SingleQuote&#39;</span><span class="p">,</span> <span class="s1">&#39;DoubleQuote&#39;</span><span class="p">}</span>
+
+<span class="n">CITATION_MODE</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;AuthorInText&#39;</span><span class="p">,</span> <span class="s1">&#39;SuppressAuthor&#39;</span><span class="p">,</span> <span class="s1">&#39;NormalCitation&#39;</span><span class="p">}</span>
+<span class="c1"># AuthorInText: @foo - as John Doe (1921) said</span>
+<span class="c1"># SupressAuthor: [-@foo]</span>
+
+<span class="n">MATH_FORMATS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;DisplayMath&#39;</span><span class="p">,</span> <span class="s1">&#39;InlineMath&#39;</span><span class="p">}</span>
+
+<span class="n">RAW_FORMATS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tex&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;latex&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;html&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;context&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;rtf&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;opendocument&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;noteref&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;openxml&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;icml&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;commonmark&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;creole&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;docbook&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;docx&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;dokuwiki&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;epub&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;fb2&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;gfm&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;haddock&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;ipynb&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;jats&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;json&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;man&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;markdown&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;markdown_github&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;markdown_mmd&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;markdown_phpextra&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;markdown_strict&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;mediawiki&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;muse&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;native&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;odt&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;opml&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;org&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;rst&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;t2t&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;textile&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;tikiwiki&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;twiki&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;vimwiki&#39;</span><span class="p">}</span>
+
+<span class="n">SPECIAL_ELEMENTS</span> <span class="o">=</span> <span class="n">LIST_NUMBER_STYLES</span> <span class="o">|</span> <span class="n">LIST_NUMBER_DELIMITERS</span> <span class="o">|</span> \
+    <span class="n">MATH_FORMATS</span> <span class="o">|</span> <span class="n">QUOTE_TYPES</span> <span class="o">|</span> <span class="n">CITATION_MODE</span> <span class="o">|</span> <span class="n">TABLE_ALIGNMENT</span> <span class="o">|</span> <span class="n">TABLE_WIDTH</span>
+
+<span class="n">EMPTY_ELEMENTS</span> <span class="o">=</span> <span class="p">{</span><span class="n">Null</span><span class="p">,</span> <span class="n">Space</span><span class="p">,</span> <span class="n">HorizontalRule</span><span class="p">,</span> <span class="n">SoftBreak</span><span class="p">,</span> <span class="n">LineBreak</span><span class="p">}</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Functions</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="k">def</span> <span class="nf">_decode_citation</span><span class="p">(</span><span class="n">dct</span><span class="p">):</span>
+    <span class="n">dct</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span>  <span class="c1"># Convert from list of tuples to dict</span>
+    <span class="k">return</span> <span class="n">Citation</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">dct</span><span class="p">[</span><span class="s1">&#39;citationId&#39;</span><span class="p">],</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="n">dct</span><span class="p">[</span><span class="s1">&#39;citationMode&#39;</span><span class="p">],</span>
+                    <span class="n">prefix</span><span class="o">=</span><span class="n">dct</span><span class="p">[</span><span class="s1">&#39;citationPrefix&#39;</span><span class="p">],</span>
+                    <span class="n">suffix</span><span class="o">=</span><span class="n">dct</span><span class="p">[</span><span class="s1">&#39;citationSuffix&#39;</span><span class="p">],</span>
+                    <span class="nb">hash</span><span class="o">=</span><span class="n">dct</span><span class="p">[</span><span class="s1">&#39;citationHash&#39;</span><span class="p">],</span>
+                    <span class="n">note_num</span><span class="o">=</span><span class="n">dct</span><span class="p">[</span><span class="s1">&#39;citationNoteNum&#39;</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">_decode_definition_item</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+    <span class="n">term</span><span class="p">,</span> <span class="n">definitions</span> <span class="o">=</span> <span class="n">item</span>
+    <span class="n">definitions</span> <span class="o">=</span> <span class="p">[</span><span class="n">Definition</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">definitions</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">DefinitionItem</span><span class="p">(</span><span class="n">term</span><span class="o">=</span><span class="n">term</span><span class="p">,</span> <span class="n">definitions</span><span class="o">=</span><span class="n">definitions</span><span class="p">)</span>
+
+
+<span class="c1"># _res_func is a dict from key to a function</span>
+<span class="c1"># which is going to eat `c`</span>
+<span class="c1"># to be used in from_json below</span>
+<span class="n">_res_func</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Str&#39;</span><span class="p">:</span> <span class="n">Str</span><span class="p">,</span>
+    <span class="s1">&#39;MetaBool&#39;</span><span class="p">:</span> <span class="n">MetaBool</span><span class="p">,</span>
+    <span class="s1">&#39;MetaString&#39;</span><span class="p">:</span> <span class="n">MetaString</span><span class="p">,</span>
+    <span class="c1"># ignore c</span>
+    <span class="s1">&#39;Null&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Null</span><span class="p">(),</span>
+    <span class="s1">&#39;Space&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Space</span><span class="p">(),</span>
+    <span class="s1">&#39;HorizontalRule&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">HorizontalRule</span><span class="p">(),</span>
+    <span class="s1">&#39;SoftBreak&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">SoftBreak</span><span class="p">(),</span>
+    <span class="s1">&#39;LineBreak&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">LineBreak</span><span class="p">(),</span>
+    <span class="c1"># eat *c instead</span>
+    <span class="s1">&#39;Plain&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Plain</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;Para&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Para</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;BlockQuote&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">BlockQuote</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;Emph&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Emph</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;Strong&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Strong</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;Underline&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Underline</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;Strikeout&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Strikeout</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;Superscript&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Superscript</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;Subscript&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Subscript</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;SmallCaps&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">SmallCaps</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;Note&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Note</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;MetaList&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">MetaList</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;MetaInlines&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">MetaInlines</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;MetaBlocks&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">MetaBlocks</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="p">),</span>
+    <span class="c1"># other cases</span>
+    <span class="s1">&#39;Div&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Div</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;Span&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Span</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;Header&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Header</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="n">level</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;Quoted&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Quoted</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">quote_type</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;Link&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Link</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">url</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;Image&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Image</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">url</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;CodeBlock&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">CodeBlock</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;RawBlock&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">RawBlock</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="nb">format</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;Code&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Code</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">decode_ica</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;Math&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Math</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="nb">format</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;RawInline&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">RawInline</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="nb">format</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;Cite&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">Cite</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">citations</span><span class="o">=</span><span class="p">[</span><span class="n">_decode_citation</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span> <span class="k">for</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;BulletList&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">BulletList</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">ListItem</span><span class="p">(</span><span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]),</span>
+    <span class="s1">&#39;OrderedList&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">OrderedList</span><span class="p">(</span>
+        <span class="o">*</span><span class="p">[</span><span class="n">ListItem</span><span class="p">(</span><span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;DefinitionList&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">DefinitionList</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">_decode_definition_item</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]),</span>
+    <span class="s1">&#39;LineBlock&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">LineBlock</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">LineItem</span><span class="p">(</span><span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]),</span>
+    <span class="s1">&#39;ColWidth&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span>
+    <span class="s1">&#39;Table&#39;</span><span class="p">:</span> <span class="n">table_from_json</span><span class="p">,</span>
+    <span class="s1">&#39;MetaMap&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">MetaMap</span><span class="p">(</span><span class="o">*</span><span class="n">c</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="from_json"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.from_json">[docs]</a><span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="c1"># Metadata key (legacy)</span>
+    <span class="k">if</span> <span class="s1">&#39;unMeta&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">MetaMap</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;unMeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+    <span class="c1"># Document (new API)</span>
+    <span class="k">if</span> <span class="s1">&#39;pandoc-api-version&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+        <span class="n">api</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;pandoc-api-version&#39;</span><span class="p">]</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">]</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;blocks&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Doc</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">,</span> <span class="n">api_version</span><span class="o">=</span><span class="n">api</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
+
+    <span class="c1"># Metadata contents (including empty metadata)</span>
+    <span class="k">if</span> <span class="s1">&#39;t&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="c1"># Standard cases</span>
+
+    <span class="c1"># Depending on the API we will have</span>
+    <span class="c1"># - New API: (&#39;t&#39;, &#39;Space&#39;)</span>
+    <span class="c1"># - Old API: (&#39;t&#39;, &#39;Space&#39;), (&#39;c&#39;, [])</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="s1">&#39;c&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">)</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+
+    <span class="c1"># This was slow previously because of the huge if then</span>
+    <span class="c1"># use a dict for O(1) lookup</span>
+    <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">_res_func</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_res_func</span><span class="p">[</span><span class="n">tag</span><span class="p">](</span><span class="n">c</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">SPECIAL_ELEMENTS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tag</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown tag: </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># similar idea to _res_func above</span>
+<span class="c1"># eat val</span>
+<span class="n">_builtin_to_meta_func</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">Block</span><span class="p">:</span> <span class="n">MetaBlocks</span><span class="p">,</span>
+    <span class="n">Inline</span><span class="p">:</span> <span class="n">MetaInlines</span><span class="p">,</span>
+    <span class="nb">bool</span><span class="p">:</span> <span class="n">MetaBool</span><span class="p">,</span>
+    <span class="nb">str</span><span class="p">:</span> <span class="n">MetaString</span><span class="p">,</span>
+    <span class="nb">float</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="n">MetaString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)),</span>
+    <span class="nb">int</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="n">MetaString</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)),</span>
+    <span class="nb">list</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="n">MetaList</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">builtin2meta</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">val</span><span class="p">]),</span>
+    <span class="nb">dict</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="n">MetaMap</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">builtin2meta</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">items</span><span class="p">()]),</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="builtin2meta"><a class="viewcode-back" href="../../panflute.elements.html#panflute.elements.builtin2meta">[docs]</a><span class="k">def</span> <span class="nf">builtin2meta</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">_builtin_to_meta_func</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_builtin_to_meta_func</span><span class="p">[</span><span class="n">type_</span><span class="p">](</span><span class="n">val</span><span class="p">)</span>
+    <span class="c1"># support subclassed builtins. see https://github.com/sergiocorreia/panflute/issues/166</span>
+    <span class="k">for</span> <span class="n">builtin_type</span><span class="p">,</span> <span class="n">meta_func</span> <span class="ow">in</span> <span class="n">_builtin_to_meta_func</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">builtin_type</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">meta_func</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">val</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">panflute</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

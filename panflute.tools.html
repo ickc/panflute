@@ -1,0 +1,362 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.tools module &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="panflute.utils module" href="panflute.utils.html" />
+    <link rel="prev" title="panflute.table_elements module" href="panflute.table_elements.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-panflute.tools">
+<span id="panflute-tools-module"></span><h1>panflute.tools module<a class="headerlink" href="#module-panflute.tools" title="Permalink to this headline">¶</a></h1>
+<p>Useful (but not essential) functions for writing panflute filters</p>
+<dl class="py function">
+<dt id="panflute.tools.convert_text">
+<code class="sig-name descname">convert_text</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em>, <em class="sig-param"><span class="n">input_format</span><span class="o">=</span><span class="default_value">'markdown'</span></em>, <em class="sig-param"><span class="n">output_format</span><span class="o">=</span><span class="default_value">'panflute'</span></em>, <em class="sig-param"><span class="n">standalone</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">extra_args</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/tools.html#convert_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.tools.convert_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert formatted text (usually markdown) by calling Pandoc internally</p>
+<p>The default output format (‘panflute’) will return a tree
+of Pandoc elements. When combined with ‘standalone=True’, the tree root
+will be a ‘Doc’ element.</p>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">md</span> <span class="o">=</span> <span class="s1">&#39;Some *markdown* **text** ~xyz~&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;Some $x^y$ or $x_n = \sqrt{a + b}$ \textit</span><span class="si">{a}</span><span class="s1">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">convert_text</span><span class="p">(</span><span class="n">md</span><span class="p">)</span>
+<span class="go">[Para(Str(Some) Space Emph(Str(markdown)) Space Strong(Str(text)) Space Subscript(Str(xyz)))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">convert_text</span><span class="p">(</span><span class="n">tex</span><span class="p">)</span>
+<span class="go">[Para(Str(Some) Space Math(x^y; format=&#39;InlineMath&#39;) Space Str(or) Space Math(x_n = \sqrt{a + b}; format=&#39;InlineMath&#39;) Space RawInline(\textit{a}; format=&#39;tex&#39;))]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference internal" href="panflute.base.html#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="panflute.base.html#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>) – text that will be converted</p></li>
+<li><p><strong>input_format</strong> – format of the text (default ‘markdown’).
+Any Pandoc input format is valid, plus ‘panflute’ (a tree of Pandoc
+elements)</p></li>
+<li><p><strong>output_format</strong> – format of the output
+(default is ‘panflute’ which creates the tree of Pandoc elements).
+Non-binary Pandoc formats are allowed (e.g. markdown, latex is allowed,
+but docx and pdf are not).</p></li>
+<li><p><strong>standalone</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – whether the results will be a standalone document
+or not.</p></li>
+<li><p><strong>extra_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – extra arguments passed to Pandoc</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> | <a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+<p>Note: for a more general solution,
+see <a class="reference external" href="https://github.com/kennethreitz/pyandoc/">pyandoc</a>
+by Kenneth Reitz.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.tools.get_option">
+<code class="sig-name descname">get_option</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">local_tag</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc_tag</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">error_on_none</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/tools.html#get_option"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.tools.get_option" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch an option variable from either a local (element) level option/attribute tag,
+a document level metadata tag, or a default.</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">type options</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p>
+</dd>
+<dt class="field-even">type local_tag</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+<dt class="field-odd">type doc</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></p>
+</dd>
+<dt class="field-even">type doc_tag</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+<dt class="field-odd">type default</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">any</span></code></p>
+</dd>
+<dt class="field-even">type error_on_none</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p>
+</dd>
+</dl>
+</div></blockquote>
+<p>The order of preference is local &gt; document &gt; default,
+although if a local or document tag returns None, then the next level down is used.
+Also, if error_on_none=True and the final variable is None, then a ValueError will be raised</p>
+<p>In this manner you can set global variables, which can be optionally overriden at a local level.
+For example, the two files below show how to apply different styles to docx text:</p>
+<p><strong>main.md:</strong></p>
+<div class="highlight-none notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span></span>------------------
+style-div:
+    name: MyStyle
+------------------
+
+:::style
+some text
+:::
+
+::: {.style name=MyOtherStyle}
+some more text
+:::
+</pre></div>
+</td></tr></table></div>
+<p><strong>style_filter.py:</strong></p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+
+<span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">==</span> <span class="n">pf</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">attributes</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="s2">&quot;style-div.name&quot;</span><span class="p">)</span>
+        <span class="n">elem</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s2">&quot;custom-style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">style</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.tools.inner_convert_text">
+<code class="sig-name descname">inner_convert_text</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em>, <em class="sig-param"><span class="n">input_format</span></em>, <em class="sig-param"><span class="n">output_format</span></em>, <em class="sig-param"><span class="n">extra_args</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/tools.html#inner_convert_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.tools.inner_convert_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="panflute.tools.meta2builtin">
+<code class="sig-name descname">meta2builtin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">meta</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/tools.html#meta2builtin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.tools.meta2builtin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="panflute.tools.run_pandoc">
+<code class="sig-name descname">run_pandoc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">args</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/tools.html#run_pandoc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.tools.run_pandoc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Low level function that calls Pandoc with (optionally)
+some input text and/or arguments</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.tools.shell">
+<code class="sig-name descname">shell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/tools.html#shell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.tools.shell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the external command and get its exitcode, stdout and stderr.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.tools.stringify">
+<code class="sig-name descname">stringify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span></em>, <em class="sig-param"><span class="n">newlines</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/tools.html#stringify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.tools.stringify" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Return the raw text version of an elements (and its children element).</p>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e1</span> <span class="o">=</span> <span class="n">Emph</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Hello&#39;</span><span class="p">),</span> <span class="n">Space</span><span class="p">,</span> <span class="n">Str</span><span class="p">(</span><span class="s1">&#39;world!&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e2</span> <span class="o">=</span> <span class="n">Strong</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Bye!&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">para</span> <span class="o">=</span> <span class="n">Para</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span> <span class="n">Space</span><span class="p">,</span> <span class="n">e2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify</span><span class="p">(</span><span class="n">para</span><span class="p">)</span>
+<span class="go">&#39;Hello world! Bye!</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>‘</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">param newlines</dt>
+<dd class="field-odd"><p>add a new line after a paragraph (default True)</p>
+</dd>
+<dt class="field-even">type newlines</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.tools.yaml_filter">
+<code class="sig-name descname">yaml_filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span></em>, <em class="sig-param"><span class="n">doc</span></em>, <em class="sig-param"><span class="n">tag</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">function</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tags</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">strict_yaml</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/tools.html#yaml_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.tools.yaml_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience function for parsing code blocks with YAML options</p>
+<p>This function is useful to create a filter that applies to
+code blocks that have specific classes.</p>
+<p>It is used as an argument of <code class="docutils literal notranslate"><span class="pre">run_filter</span></code>, with two additional options:
+<code class="docutils literal notranslate"><span class="pre">tag</span></code> and <code class="docutils literal notranslate"><span class="pre">function</span></code>.</p>
+<p>Using this is equivalent to having filter functions that:</p>
+<ol class="arabic simple">
+<li><p>Check if the element is a code block</p></li>
+<li><p>Check if the element belongs to a specific class</p></li>
+<li><p>Split the YAML options (at the beginning of the block, by looking
+for <code class="docutils literal notranslate"><span class="pre">...</span></code> or <code class="docutils literal notranslate"><span class="pre">---</span></code> strings in a separate line</p></li>
+<li><p>Parse the YAML</p></li>
+<li><p>Use the YAML options and (optionally) the data that follows the YAML
+to return a new or modified element</p></li>
+</ol>
+<p>Instead, you just need to:</p>
+<ol class="arabic simple">
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">run_filter</span></code> with <code class="docutils literal notranslate"><span class="pre">yaml_filter</span></code> as the action function, and
+with the additional arguments <code class="docutils literal notranslate"><span class="pre">tag</span></code> and <code class="docutils literal notranslate"><span class="pre">function</span></code></p></li>
+<li><p>Construct a <code class="docutils literal notranslate"><span class="pre">fenced_action</span></code> function that takes four arguments:
+(options, data, element, doc). Note that options is a dict and data
+is a raw string. Notice that this is similar to the <code class="docutils literal notranslate"><span class="pre">action</span></code>
+functions of standard filters, but with <em>options</em> and <em>data</em> as the
+new ones.</p></li>
+</ol>
+<p>Note: if you want to apply multiple functions to separate classes,
+you can use the <code class="docutils literal notranslate"><span class="pre">tags</span></code> argument, which receives a dict of
+<code class="docutils literal notranslate"><span class="pre">tag:</span> <span class="pre">function</span></code> pairs.</p>
+<p>Note: use the <code class="docutils literal notranslate"><span class="pre">strict_yaml=True</span></code> option in order to allow for more verbose
+but flexible YAML metadata: more than one YAML blocks are allowed, but
+they all must start with <code class="docutils literal notranslate"><span class="pre">---</span></code> (even at the beginning) and end with
+<code class="docutils literal notranslate"><span class="pre">---</span></code> or <code class="docutils literal notranslate"><span class="pre">...</span></code>. Also, YAML is not the default content
+when no delimiters are set.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Replace code blocks of class &#39;foo&#39; with # horizontal rules</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">panflute</span> <span class="k">as</span> <span class="nn">pf</span>
+
+<span class="k">def</span> <span class="nf">fenced_action</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">div</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="n">attributes</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)})</span>
+    <span class="n">div</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">pf</span><span class="o">.</span><span class="n">HorizontalRule</span><span class="p">]</span> <span class="o">*</span> <span class="n">count</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">div</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">pf</span><span class="o">.</span><span class="n">run_filter</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">yaml_filter</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">fenced_action</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Contributing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">panflute</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="panflute.html">panflute package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="panflute.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="panflute.html#module-panflute">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">panflute</a><ul>
+  <li><a href="panflute.html">panflute package</a><ul>
+      <li>Previous: <a href="panflute.table_elements.html" title="previous chapter">panflute.table_elements module</a></li>
+      <li>Next: <a href="panflute.utils.html" title="next chapter">panflute.utils module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

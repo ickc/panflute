@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.io &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for panflute.io</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">I/O related functions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Imports</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="kn">from</span> <span class="nn">.elements</span> <span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Doc</span><span class="p">,</span> <span class="n">from_json</span><span class="p">,</span> <span class="n">ListContainer</span>
+
+<span class="c1"># These will get modified if using Pandoc legacy (&lt;1.8)</span>
+<span class="kn">from</span> <span class="nn">.elements</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Citation</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">OrderedList</span><span class="p">,</span> <span class="n">Quoted</span><span class="p">,</span>
+                       <span class="n">Math</span><span class="p">,</span> <span class="n">EMPTY_ELEMENTS</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">codecs</span>  <span class="c1"># Used in sys.stdout writer</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Functions</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="load"><a class="viewcode-back" href="../../panflute.io.html#panflute.io.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">input_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load JSON-encoded document and return a :class:`.Doc` element.</span>
+
+<span class="sd">    The JSON input will be read from :data:`sys.stdin` unless an alternative</span>
+<span class="sd">    text stream is given (a file handle).</span>
+
+<span class="sd">    To load from a file, you can do:</span>
+
+<span class="sd">        &gt;&gt;&gt; import panflute as pf</span>
+<span class="sd">        &gt;&gt;&gt; with open(&#39;some-document.json&#39;, encoding=&#39;utf-8&#39;) as f:</span>
+<span class="sd">        &gt;&gt;&gt;     doc = pf.load(f)</span>
+
+<span class="sd">    To load from a string, you can do:</span>
+
+<span class="sd">        &gt;&gt;&gt; import io</span>
+<span class="sd">        &gt;&gt;&gt; raw = &#39;[{&quot;unMeta&quot;:{}},</span>
+<span class="sd">        [{&quot;t&quot;:&quot;Para&quot;,&quot;c&quot;:[{&quot;t&quot;:&quot;Str&quot;,&quot;c&quot;:&quot;Hello!&quot;}]}]]&#39;</span>
+<span class="sd">        &gt;&gt;&gt; f = io.StringIO(raw)</span>
+<span class="sd">        &gt;&gt;&gt; doc = pf.load(f)</span>
+
+<span class="sd">    :param input_stream: text stream used as input</span>
+<span class="sd">        (default is :data:`sys.stdin`)</span>
+<span class="sd">    :rtype: :class:`.Doc`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">input_stream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">input_stream</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Load JSON and validate it</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">input_stream</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="n">from_json</span><span class="p">)</span>
+
+    <span class="c1"># Notes:</span>
+    <span class="c1"># - The hook gets called for dicts (not lists), and the deepest dicts</span>
+    <span class="c1">#   get called first (so you can ensure that when you receive a dict,</span>
+    <span class="c1">#   its contents have already been fed to the hook).</span>
+
+    <span class="c1"># Compatibility:</span>
+    <span class="c1"># - As of Pandoc 1.9, JSON input is a dict:</span>
+    <span class="c1">#   {&quot;pandoc-api-version&quot; : [MAJ, MIN, REV],</span>
+    <span class="c1">#    &quot;meta&quot; : META, &quot;blocks&quot;: BLOCKS}</span>
+
+    <span class="c1"># Corner cases:</span>
+    <span class="c1"># - If META is missing, &#39;object_hook&#39; will receive an empty list</span>
+
+    <span class="c1"># Output format</span>
+    <span class="nb">format</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;html&#39;</span>
+
+    <span class="c1"># API Version</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Doc</span><span class="p">)</span>
+    <span class="n">doc</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="nb">format</span>
+    <span class="k">return</span> <span class="n">doc</span></div>
+
+
+<div class="viewcode-block" id="dump"><a class="viewcode-back" href="../../panflute.io.html#panflute.io.dump">[docs]</a><span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dump a :class:`.Doc` object into a JSON-encoded text string.</span>
+
+<span class="sd">    The output will be sent to :data:`sys.stdout` unless an alternative</span>
+<span class="sd">    text stream is given.</span>
+
+<span class="sd">    To dump to :data:`sys.stdout` just do:</span>
+
+<span class="sd">        &gt;&gt;&gt; import panflute as pf</span>
+<span class="sd">        &gt;&gt;&gt; doc = pf.Doc(Para(Str(&#39;a&#39;)))  # Create sample document</span>
+<span class="sd">        &gt;&gt;&gt; pf.dump(doc)</span>
+
+<span class="sd">    To dump to file:</span>
+
+<span class="sd">        &gt;&gt;&gt; with open(&#39;some-document.json&#39;, &#39;w&#39;, encoding=&#39;utf-8&#39;) as f:</span>
+<span class="sd">        &gt;&gt;&gt;     pf.dump(doc, f)</span>
+
+<span class="sd">    To dump to a  string:</span>
+
+<span class="sd">        &gt;&gt;&gt; import io</span>
+<span class="sd">        &gt;&gt;&gt; with io.StringIO() as f:</span>
+<span class="sd">        &gt;&gt;&gt;     pf.dump(doc, f)</span>
+<span class="sd">        &gt;&gt;&gt;     contents = f.getvalue()</span>
+
+<span class="sd">    :param doc: document, usually created with :func:`.load`</span>
+<span class="sd">    :type doc: :class:`.Doc`</span>
+<span class="sd">    :param output_stream: text stream used as output</span>
+<span class="sd">        (default is :data:`sys.stdout`)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Doc</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;panflute.dump needs input of type &quot;panflute.Doc&quot; but received one of type &quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_stream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">codecs</span><span class="o">.</span><span class="n">getwriter</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+        <span class="n">output_stream</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+    <span class="n">json_serializer</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">elem</span><span class="p">:</span> <span class="n">elem</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+
+    <span class="n">output_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+        <span class="n">obj</span><span class="o">=</span><span class="n">doc</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">json_serializer</span><span class="p">,</span>  <span class="c1"># Serializer</span>
+        <span class="n">check_circular</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">),</span>  <span class="c1"># Compact separators, like Pandoc</span>
+        <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># For Pandoc compat</span>
+    <span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="toJSONFilters"><a class="viewcode-back" href="../../panflute.io.html#panflute.io.toJSONFilters">[docs]</a><span class="k">def</span> <span class="nf">toJSONFilters</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper for :func:`.run_filters`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">run_filters</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="toJSONFilter"><a class="viewcode-back" href="../../panflute.io.html#panflute.io.toJSONFilter">[docs]</a><span class="k">def</span> <span class="nf">toJSONFilter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wapper for :func:`.run_filter`, which calls :func:`.run_filters`</span>
+
+<span class="sd">    toJSONFilter(action, prepare=None, finalize=None, input_stream=None, output_stream=None, \*\*kwargs)</span>
+<span class="sd">    Receive a Pandoc document from stdin, apply the *action* function to each element, and write it back to stdout.</span>
+
+<span class="sd">    See also :func:`.toJSONFilters`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">run_filter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="run_filters"><a class="viewcode-back" href="../../panflute.io.html#panflute.io.run_filters">[docs]</a><span class="k">def</span> <span class="nf">run_filters</span><span class="p">(</span><span class="n">actions</span><span class="p">,</span>
+                <span class="n">prepare</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">finalize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">input_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_stream</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receive a Pandoc document from the input stream (default is stdin),</span>
+<span class="sd">    walk through it applying the functions in *actions* to each element,</span>
+<span class="sd">    and write it back to the output stream (default is stdout).</span>
+
+<span class="sd">    Notes:</span>
+
+<span class="sd">    - It receives and writes the Pandoc documents as JSON--encoded strings;</span>
+<span class="sd">      this is done through the :func:`.load` and :func:`.dump` functions.</span>
+<span class="sd">    - It walks through the document once for every function in *actions*,</span>
+<span class="sd">      so the actions are applied sequentially.</span>
+<span class="sd">    - By default, it will read from stdin and write to stdout,</span>
+<span class="sd">      but these can be modified.</span>
+<span class="sd">    - It can also apply functions to the entire document at the beginning and</span>
+<span class="sd">      end; this allows for global operations on the document.</span>
+<span class="sd">    - If ``doc`` is a :class:`.Doc` instead of ``None``, ``run_filters``</span>
+<span class="sd">      will return the document instead of writing it to the output stream.</span>
+
+<span class="sd">    :param actions: sequence of functions; each function takes (element, doc)</span>
+<span class="sd">     as argument, so a valid header would be ``def action(elem, doc):``</span>
+<span class="sd">    :type actions: [:class:`function`]</span>
+<span class="sd">    :param prepare: function executed at the beginning;</span>
+<span class="sd">     right after the document is received and parsed</span>
+<span class="sd">    :type prepare: :class:`function`</span>
+<span class="sd">    :param finalize: function executed at the end;</span>
+<span class="sd">     right before the document is converted back to JSON and written to stdout.</span>
+<span class="sd">    :type finalize: :class:`function`</span>
+<span class="sd">    :param input_stream: text stream used as input</span>
+<span class="sd">        (default is :data:`sys.stdin`)</span>
+<span class="sd">    :param output_stream: text stream used as output</span>
+<span class="sd">        (default is :data:`sys.stdout`)</span>
+<span class="sd">    :param doc: ``None`` unless running panflute as a filter, in which case this will be a :class:`.Doc` element</span>
+<span class="sd">    :type doc: ``None`` | :class:`.Doc`</span>
+<span class="sd">    :param \*kwargs: keyword arguments will be passed through to the *action*</span>
+<span class="sd">     functions (so they can actually receive more than just two arguments</span>
+<span class="sd">     (*element* and *doc*)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">load_and_dump</span> <span class="o">=</span> <span class="p">(</span><span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">load_and_dump</span><span class="p">:</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">input_stream</span><span class="o">=</span><span class="n">input_stream</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">prepare</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">prepare</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">finalize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">finalize</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">load_and_dump</span><span class="p">:</span>
+        <span class="n">dump</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output_stream</span><span class="o">=</span><span class="n">output_stream</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="run_filter"><a class="viewcode-back" href="../../panflute.io.html#panflute.io.run_filter">[docs]</a><span class="k">def</span> <span class="nf">run_filter</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">     Wapper for :func:`.run_filters`</span>
+
+<span class="sd">    Receive a Pandoc document from stdin, apply the *action* function to each element, and write it back to stdout.</span>
+
+<span class="sd">    See :func:`.run_filters`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">run_filters</span><span class="p">([</span><span class="n">action</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">panflute</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

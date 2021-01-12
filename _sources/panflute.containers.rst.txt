@@ -1,0 +1,7 @@
+panflute.containers module
+==========================
+
+.. automodule:: panflute.containers
+   :members:
+   :undoc-members:
+   :show-inheritance:

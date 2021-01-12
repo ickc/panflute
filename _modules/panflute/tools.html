@@ -1,0 +1,711 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.tools &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for panflute.tools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Useful (but not essential) functions for writing panflute filters</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Imports</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">.elements</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.io</span> <span class="kn">import</span> <span class="n">dump</span>
+
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">shlex</span>
+
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">which</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Constants</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="n">HorizontalSpaces</span> <span class="o">=</span> <span class="p">(</span><span class="n">Space</span><span class="p">,</span> <span class="n">LineBreak</span><span class="p">,</span> <span class="n">SoftBreak</span><span class="p">)</span>
+
+<span class="n">VerticalSpaces</span> <span class="o">=</span> <span class="p">(</span><span class="n">Para</span><span class="p">,</span> <span class="p">)</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Convenience functions</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="yaml_filter"><a class="viewcode-back" href="../../panflute.tools.html#panflute.base.yaml_filter">[docs]</a><span class="k">def</span> <span class="nf">yaml_filter</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">strict_yaml</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Convenience function for parsing code blocks with YAML options</span>
+
+<span class="sd">    This function is useful to create a filter that applies to</span>
+<span class="sd">    code blocks that have specific classes.</span>
+
+<span class="sd">    It is used as an argument of ``run_filter``, with two additional options:</span>
+<span class="sd">    ``tag`` and ``function``.</span>
+
+<span class="sd">    Using this is equivalent to having filter functions that:</span>
+
+<span class="sd">    1. Check if the element is a code block</span>
+<span class="sd">    2. Check if the element belongs to a specific class</span>
+<span class="sd">    3. Split the YAML options (at the beginning of the block, by looking</span>
+<span class="sd">       for ``...`` or ``---`` strings in a separate line</span>
+<span class="sd">    4. Parse the YAML</span>
+<span class="sd">    5. Use the YAML options and (optionally) the data that follows the YAML</span>
+<span class="sd">       to return a new or modified element</span>
+
+<span class="sd">    Instead, you just need to:</span>
+
+<span class="sd">    1. Call ``run_filter`` with ``yaml_filter`` as the action function, and</span>
+<span class="sd">       with the additional arguments ``tag`` and ``function``</span>
+<span class="sd">    2. Construct a ``fenced_action`` function that takes four arguments:</span>
+<span class="sd">       (options, data, element, doc). Note that options is a dict and data</span>
+<span class="sd">       is a raw string. Notice that this is similar to the ``action``</span>
+<span class="sd">       functions of standard filters, but with *options* and *data* as the</span>
+<span class="sd">       new ones.</span>
+
+<span class="sd">    Note: if you want to apply multiple functions to separate classes,</span>
+<span class="sd">    you can use the ``tags`` argument, which receives a dict of</span>
+<span class="sd">    ``tag: function`` pairs.</span>
+
+<span class="sd">    Note: use the ``strict_yaml=True`` option in order to allow for more verbose</span>
+<span class="sd">    but flexible YAML metadata: more than one YAML blocks are allowed, but</span>
+<span class="sd">    they all must start with ``---`` (even at the beginning) and end with</span>
+<span class="sd">    ``---`` or ``...``. Also, YAML is not the default content</span>
+<span class="sd">    when no delimiters are set.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        Replace code blocks of class &#39;foo&#39; with # horizontal rules</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="sd">        import panflute as pf</span>
+
+<span class="sd">        def fenced_action(options, data, element, doc):</span>
+<span class="sd">            count = options.get(&#39;count&#39;, 1)</span>
+<span class="sd">            div = pf.Div(attributes={&#39;count&#39;: str(count)})</span>
+<span class="sd">            div.content.extend([pf.HorizontalRule] * count)</span>
+<span class="sd">            return div</span>
+
+<span class="sd">        if __name__ == &#39;__main__&#39;:</span>
+<span class="sd">            pf.run_filter(pf.yaml_filter, tag=&#39;foo&#39;, function=fenced_action)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c1"># Allow for either tag+function or a dict {tag: function}</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">tags</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>  <span class="c1"># XOR</span>
+    <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">{</span><span class="n">tag</span><span class="p">:</span> <span class="n">function</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="o">==</span> <span class="n">CodeBlock</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">classes</span><span class="p">:</span>
+                <span class="n">function</span> <span class="o">=</span> <span class="n">tags</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">strict_yaml</span><span class="p">:</span>
+                    <span class="c1"># Split YAML and data parts (separated by ... or ---)</span>
+                    <span class="n">raw</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;^([.]{3,}|[-]{3,})$&quot;</span><span class="p">,</span>
+                                   <span class="n">element</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">raw</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">raw</span> <span class="o">=</span> <span class="n">raw</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">options</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="n">yaml</span><span class="o">.</span><span class="n">scanner</span><span class="o">.</span><span class="n">ScannerError</span><span class="p">:</span>
+                        <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;panflute: malformed YAML block&quot;</span><span class="p">)</span>
+                        <span class="k">return</span>
+                    <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">options</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">raw</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;^([.]{3,}|[-]{3,})$&quot;</span><span class="p">,</span>
+                                   <span class="n">element</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+                    <span class="n">rawmode</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
+
+                        <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="p">:</span>
+                            <span class="k">continue</span>
+
+                        <span class="k">if</span> <span class="n">rawmode</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;---&#39;</span><span class="p">):</span>
+                                <span class="n">rawmode</span> <span class="o">=</span> <span class="kc">False</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;---&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">chunk</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;...&#39;</span><span class="p">):</span>
+                                <span class="n">rawmode</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="n">options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">chunk</span><span class="p">))</span>
+                                <span class="k">except</span> <span class="n">yaml</span><span class="o">.</span><span class="n">scanner</span><span class="o">.</span><span class="n">ScannerError</span><span class="p">:</span>
+                                    <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;panflute: malformed YAML block&quot;</span><span class="p">)</span>
+                                    <span class="k">return</span>
+
+                    <span class="n">data</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">function</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                                <span class="n">element</span><span class="o">=</span><span class="n">element</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Functions that extract content</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="stringify"><a class="viewcode-back" href="../../panflute.tools.html#panflute.base.stringify">[docs]</a><span class="k">def</span> <span class="nf">stringify</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the raw text version of an elements (and its children element).</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from panflute import *</span>
+<span class="sd">        &gt;&gt;&gt; e1 = Emph(Str(&#39;Hello&#39;), Space, Str(&#39;world!&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; e2 = Strong(Str(&#39;Bye!&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; para = Para(e1, Space, e2)</span>
+<span class="sd">        &gt;&gt;&gt; stringify(para)</span>
+<span class="sd">        &#39;Hello world! Bye!\n\n&#39;</span>
+
+<span class="sd">    :param newlines: add a new line after a paragraph (default True)</span>
+<span class="sd">    :type newlines: :class:`bool`</span>
+<span class="sd">    :rtype: :class:`str`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">attach_str</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">answer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">):</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">HorizontalSpaces</span><span class="p">):</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">VerticalSpaces</span><span class="p">)</span> <span class="ow">and</span> <span class="n">newlines</span><span class="p">:</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="n">Citation</span><span class="p">:</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="c1"># Add quotes around the contents of Quoted()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span> <span class="o">==</span> <span class="n">Quoted</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ans</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">ans</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">container</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ans</span> <span class="o">+=</span> <span class="s1">&#39;&quot;&#39;</span>
+
+        <span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ans</span><span class="p">)</span>
+
+    <span class="n">answer</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">attach_str</span><span class="p">,</span> <span class="n">answer</span><span class="o">=</span><span class="n">answer</span><span class="p">)</span>
+    <span class="n">element</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">builtin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get_metadata([key, default, simple])</span>
+
+<span class="sd">    Retrieve metadata with nested keys separated by dots.</span>
+
+<span class="sd">    This is useful to avoid repeatedly checking if a dict exists, as</span>
+<span class="sd">    the frontmatter might not have the keys that we expect.</span>
+
+<span class="sd">    With ``builtin=True`` (the default), it will convert the results to</span>
+<span class="sd">    built-in Python types, instead of :class:`.MetaValue` elements. EG: instead of returning a MetaBool it will return True|False.</span>
+
+<span class="sd">    :param key: string with the keys separated by a dot (``key1.key2``). Default is an empty string (which returns the entire metadata dict)</span>
+<span class="sd">    :type key: ``str``</span>
+<span class="sd">    :param default: return value in case the key is not found (default is ``None``)</span>
+<span class="sd">    :param builtin: If True, return built-in Python types (default is ``True``)</span>
+
+<span class="sd">    :Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; doc.metadata[&#39;format&#39;][&#39;show-frame&#39;] = True</span>
+<span class="sd">        &gt;&gt;&gt; # ...</span>
+<span class="sd">        &gt;&gt;&gt; # afterwards:</span>
+<span class="sd">        &gt;&gt;&gt; show_frame = doc.get_metadata(&#39;format.show-frame&#39;, False)</span>
+<span class="sd">        &gt;&gt;&gt; stata_path = doc.get_metadata(&#39;media.path.figures&#39;, &#39;.&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Retrieve metadata</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span>
+
+    <span class="c1"># Retrieve specific key</span>
+    <span class="k">if</span> <span class="n">key</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">MetaMap</span><span class="p">)</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+                <span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">default</span>
+
+    <span class="c1"># Stringify contents</span>
+    <span class="k">return</span> <span class="n">meta2builtin</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span> <span class="k">if</span> <span class="n">builtin</span> <span class="k">else</span> <span class="n">meta</span>
+
+
+<div class="viewcode-block" id="meta2builtin"><a class="viewcode-back" href="../../panflute.tools.html#panflute.base.meta2builtin">[docs]</a><span class="k">def</span> <span class="nf">meta2builtin</span><span class="p">(</span><span class="n">meta</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">MetaBool</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">meta</span><span class="o">.</span><span class="n">boolean</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">MetaString</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">meta</span><span class="o">.</span><span class="n">text</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">MetaList</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">meta2builtin</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">list</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">MetaMap</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">meta2builtin</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="p">(</span><span class="n">MetaInlines</span><span class="p">,</span> <span class="n">MetaBlocks</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">stringify</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MISSING&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">meta</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">meta</span></div>
+
+
+<span class="c1"># Bind the method</span>
+<span class="n">Doc</span><span class="o">.</span><span class="n">get_metadata</span> <span class="o">=</span> <span class="n">_get_metadata</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Functions that rely on external calls</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="shell"><a class="viewcode-back" href="../../panflute.tools.html#panflute.base.shell">[docs]</a><span class="k">def</span> <span class="nf">shell</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute the external command and get its exitcode, stdout and stderr.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Fix Windows error if passed a string</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">shlex</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">posix</span><span class="o">=</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;nt&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;nt&quot;</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">wait</span><span class="p">:</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
+        <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">exitcode</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span>
+        <span class="k">if</span> <span class="n">exitcode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">DETACHED_PROCESS</span> <span class="o">=</span> <span class="mh">0x00000008</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">creationflags</span><span class="o">=</span><span class="n">DETACHED_PROCESS</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="run_pandoc"><a class="viewcode-back" href="../../panflute.tools.html#panflute.base.run_pandoc">[docs]</a><span class="k">def</span> <span class="nf">run_pandoc</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Low level function that calls Pandoc with (optionally)</span>
+<span class="sd">    some input text and/or arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">pandoc_path</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s1">&#39;pandoc&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pandoc_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pandoc_path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;Path to pandoc executable does not exists&quot;</span><span class="p">)</span>
+
+    <span class="n">proc</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">([</span><span class="n">pandoc_path</span><span class="p">]</span> <span class="o">+</span> <span class="n">args</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+    <span class="n">exitcode</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span>
+    <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">debug</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">exitcode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="convert_text"><a class="viewcode-back" href="../../panflute.tools.html#panflute.base.convert_text">[docs]</a><span class="k">def</span> <span class="nf">convert_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span>
+                 <span class="n">input_format</span><span class="o">=</span><span class="s1">&#39;markdown&#39;</span><span class="p">,</span>
+                 <span class="n">output_format</span><span class="o">=</span><span class="s1">&#39;panflute&#39;</span><span class="p">,</span>
+                 <span class="n">standalone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">extra_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert formatted text (usually markdown) by calling Pandoc internally</span>
+
+<span class="sd">    The default output format (&#39;panflute&#39;) will return a tree</span>
+<span class="sd">    of Pandoc elements. When combined with &#39;standalone=True&#39;, the tree root</span>
+<span class="sd">    will be a &#39;Doc&#39; element.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from panflute import *</span>
+<span class="sd">        &gt;&gt;&gt; md = &#39;Some *markdown* **text** ~xyz~&#39;</span>
+<span class="sd">        &gt;&gt;&gt; tex = r&#39;Some $x^y$ or $x_n = \sqrt{a + b}$ \textit{a}&#39;</span>
+<span class="sd">        &gt;&gt;&gt; convert_text(md)</span>
+<span class="sd">        [Para(Str(Some) Space Emph(Str(markdown)) Space Strong(Str(text)) Space Subscript(Str(xyz)))]</span>
+<span class="sd">        &gt;&gt;&gt; convert_text(tex)</span>
+<span class="sd">        [Para(Str(Some) Space Math(x^y; format=&#39;InlineMath&#39;) Space Str(or) Space Math(x_n = \sqrt{a + b}; format=&#39;InlineMath&#39;) Space RawInline(\textit{a}; format=&#39;tex&#39;))]</span>
+
+
+<span class="sd">    :param text: text that will be converted</span>
+<span class="sd">    :type text: :class:`str` | :class:`.Element` | :class:`list` of :class:`.Element`</span>
+<span class="sd">    :param input_format: format of the text (default &#39;markdown&#39;).</span>
+<span class="sd">     Any Pandoc input format is valid, plus &#39;panflute&#39; (a tree of Pandoc</span>
+<span class="sd">     elements)</span>
+<span class="sd">    :param output_format: format of the output</span>
+<span class="sd">     (default is &#39;panflute&#39; which creates the tree of Pandoc elements).</span>
+<span class="sd">     Non-binary Pandoc formats are allowed (e.g. markdown, latex is allowed,</span>
+<span class="sd">     but docx and pdf are not).</span>
+<span class="sd">    :param standalone: whether the results will be a standalone document</span>
+<span class="sd">     or not.</span>
+<span class="sd">    :type standalone: :class:`bool`</span>
+<span class="sd">    :param extra_args: extra arguments passed to Pandoc</span>
+<span class="sd">    :type extra_args: :class:`list`</span>
+<span class="sd">    :rtype: :class:`list` | :class:`.Doc` | :class:`str`</span>
+
+<span class="sd">    Note: for a more general solution,</span>
+<span class="sd">    see `pyandoc &lt;https://github.com/kennethreitz/pyandoc/&gt;`_</span>
+<span class="sd">    by Kenneth Reitz.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">input_format</span> <span class="o">==</span> <span class="s1">&#39;panflute&#39;</span><span class="p">:</span>
+
+        <span class="c1"># Problem:</span>
+        <span class="c1">#  We need a Doc element, but received a list of elements.</span>
+        <span class="c1">#  So we wrap-up the list in a Doc, but with what pandoc-api version?</span>
+        <span class="c1">#  (remember that Pandoc requires a matching api-version!)</span>
+        <span class="c1"># Workaround: call Pandoc with empty text to get its api-version</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">Doc</span><span class="p">):</span>
+            <span class="n">tmp_doc</span> <span class="o">=</span> <span class="n">convert_text</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">standalone</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">api_version</span> <span class="o">=</span> <span class="n">tmp_doc</span><span class="o">.</span><span class="n">api_version</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">Element</span><span class="p">):</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">Doc</span><span class="p">(</span><span class="o">*</span><span class="n">text</span><span class="p">,</span> <span class="n">api_version</span><span class="o">=</span><span class="n">api_version</span><span class="p">)</span>
+
+        <span class="c1"># Dump the Doc into json</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">dump</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+
+    <span class="n">in_fmt</span> <span class="o">=</span> <span class="s1">&#39;json&#39;</span> <span class="k">if</span> <span class="n">input_format</span> <span class="o">==</span> <span class="s1">&#39;panflute&#39;</span> <span class="k">else</span> <span class="n">input_format</span>
+    <span class="n">out_fmt</span> <span class="o">=</span> <span class="s1">&#39;json&#39;</span> <span class="k">if</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s1">&#39;panflute&#39;</span> <span class="k">else</span> <span class="n">output_format</span>
+
+    <span class="k">if</span> <span class="n">extra_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">standalone</span><span class="p">:</span>
+        <span class="n">extra_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;--standalone&#39;</span><span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="n">inner_convert_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">in_fmt</span><span class="p">,</span> <span class="n">out_fmt</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s1">&#39;panflute&#39;</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="n">from_json</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">standalone</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">Doc</span><span class="p">):</span>  <span class="c1"># Pandoc 1.7.2 and earlier</span>
+                <span class="n">metadata</span><span class="p">,</span> <span class="n">items</span> <span class="o">=</span> <span class="n">out</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">Doc</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">Doc</span><span class="p">):</span>  <span class="c1"># Pandoc 1.8 and later</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">list</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Pandoc 1.7.2 and earlier</span>
+
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="inner_convert_text"><a class="viewcode-back" href="../../panflute.tools.html#panflute.base.inner_convert_text">[docs]</a><span class="k">def</span> <span class="nf">inner_convert_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">input_format</span><span class="p">,</span> <span class="n">output_format</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">):</span>
+    <span class="c1"># like convert_text(), but does not support &#39;panflute&#39; input/output</span>
+    <span class="n">from_arg</span> <span class="o">=</span> <span class="s1">&#39;--from=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_format</span><span class="p">)</span>
+    <span class="n">to_arg</span> <span class="o">=</span> <span class="s1">&#39;--to=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_format</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">from_arg</span><span class="p">,</span> <span class="n">to_arg</span><span class="p">]</span> <span class="o">+</span> <span class="n">extra_args</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">run_pandoc</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>  <span class="c1"># Replace \r\n with \n</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Functions that modify content</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="k">def</span> <span class="nf">_replace_keyword</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">replacement</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    replace_keyword(keyword, replacement[, count])</span>
+
+<span class="sd">    Walk through the element and its children</span>
+<span class="sd">    and look for Str() objects that contains</span>
+<span class="sd">    exactly the keyword. Then, replace it.</span>
+
+<span class="sd">    Usually applied to an entire document (a :class:`.Doc` element)</span>
+
+<span class="sd">    Note: If the replacement is a block, it cannot be put in place of</span>
+<span class="sd">    a Str element. As a solution, the closest ancestor (e.g. the parent)</span>
+<span class="sd">    will be replaced instead, but only if possible</span>
+<span class="sd">    (if the parent only has one child).</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from panflute import *</span>
+<span class="sd">    &gt;&gt;&gt; p1 = Para(Str(&#39;Spam&#39;), Space, Emph(Str(&#39;and&#39;), Space, Str(&#39;eggs&#39;)))</span>
+<span class="sd">    &gt;&gt;&gt; p2 = Para(Str(&#39;eggs&#39;))</span>
+<span class="sd">    &gt;&gt;&gt; p3 = Plain(Emph(Str(&#39;eggs&#39;)))</span>
+<span class="sd">    &gt;&gt;&gt; doc = Doc(p1, p2, p3)</span>
+<span class="sd">    &gt;&gt;&gt; doc.content</span>
+<span class="sd">    ListContainer(Para(Str(Spam) Space Emph(Str(and) Space Str(eggs))) Para(Str(eggs)) Plain(Emph(Str(eggs))))</span>
+<span class="sd">    &gt;&gt;&gt; doc.replace_keyword(&#39;eggs&#39;, Str(&#39;ham&#39;))</span>
+<span class="sd">    &gt;&gt;&gt; doc.content</span>
+<span class="sd">    ListContainer(Para(Str(Spam) Space Emph(Str(and) Space Str(ham))) Para(Str(ham)) Plain(Emph(Str(ham))))</span>
+<span class="sd">    &gt;&gt;&gt; doc.replace_keyword(keyword=&#39;ham&#39;, replacement=Para(Str(&#39;spam&#39;)))</span>
+<span class="sd">    &gt;&gt;&gt; doc.content</span>
+<span class="sd">    ListContainer(Para(Str(Spam) Space Emph(Str(and) Space Str(ham))) Para(Str(spam)) Para(Str(spam)))</span>
+
+<span class="sd">    :param keyword: string that will be searched (cannot have spaces!)</span>
+<span class="sd">    :type keyword: :class:`str`</span>
+<span class="sd">    :param replacement: element that will be placed in turn of the ``Str``</span>
+<span class="sd">     element that contains the keyword.</span>
+<span class="sd">    :type replacement: :class:`.Element`</span>
+<span class="sd">    :param count: number of occurrences that will be replaced.</span>
+<span class="sd">     If count is not given or is set to zero, all occurrences</span>
+<span class="sd">     will be replaced.</span>
+<span class="sd">    :type count: :class:`int`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">replace_with_inline</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="n">Str</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+            <span class="n">doc</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">count</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">&lt;=</span> <span class="n">count</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">replacement</span>
+
+    <span class="k">def</span> <span class="nf">replace_with_block</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        It&#39;s difficult to replace a keyword with an entire Block element.</span>
+
+<span class="sd">        This is because the keyword is of type Str (an Inline) and the parent</span>
+<span class="sd">        object of a Str can only contain Inlines and not Blocks</span>
+<span class="sd">        (e.g. Para can contain Inlines, not Divs)</span>
+
+<span class="sd">        Implications:</span>
+
+<span class="sd">        1) If the Str that contains the keyword is inside another</span>
+<span class="sd">           Inline instead of a Block (e.g. Div -&gt; Emph -&gt; Str)</span>
+<span class="sd">           then we have to do a trick:</span>
+<span class="sd">           when .walk() touches an Emph that contains Str(keyword),</span>
+<span class="sd">           it replaces the Emph with Str(keyword).</span>
+
+<span class="sd">        2) If the element that contains the Str(keyword) has multiple children,</span>
+<span class="sd">           then we are in a bind as replacing it will destroy information.</span>
+<span class="sd">           Thus, we can&#39;t do do it</span>
+
+<span class="sd">        3) If the element that contains the Str(keyword) does so in a DictContainer</span>
+<span class="sd">           instead of a ListContainer, then we cannot retrieve the &quot;first and only</span>
+<span class="sd">           element&quot; easily, so we also abort (happens with metadata elements).</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># Here we can check that e.content is ListContainer (i.e. not DictContainer)</span>
+        <span class="c1"># or check that e is not a Metavalue (&quot;not isinstance(e, MetaValue)&quot;)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">ListContainer</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ee</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">ee</span><span class="p">)</span> <span class="o">==</span> <span class="n">Str</span> <span class="ow">and</span> <span class="n">ee</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">Block</span><span class="p">):</span>
+                    <span class="n">doc</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">count</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">&lt;=</span> <span class="n">count</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">replacement</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">Inline</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">Str</span><span class="p">(</span><span class="n">keyword</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c1"># not implemented</span>
+
+    <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;No root document&#39;</span><span class="p">)</span>
+    <span class="n">doc</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">replacement</span><span class="p">,</span> <span class="n">Inline</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">replace_with_inline</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">replacement</span><span class="p">,</span> <span class="n">Block</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">replace_with_block</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">replacement</span><span class="p">))</span>
+
+
+<span class="c1"># Bind the method</span>
+<span class="n">Element</span><span class="o">.</span><span class="n">replace_keyword</span> <span class="o">=</span> <span class="n">_replace_keyword</span>
+
+
+<div class="viewcode-block" id="get_option"><a class="viewcode-back" href="../../panflute.tools.html#panflute.base.get_option">[docs]</a><span class="k">def</span> <span class="nf">get_option</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">local_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">doc_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_on_none</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetch an option variable from either a local (element) level option/attribute tag,</span>
+<span class="sd">    a document level metadata tag, or a default.</span>
+
+<span class="sd">     :type options: ``dict``</span>
+<span class="sd">     :type local_tag: ``str``</span>
+<span class="sd">     :type doc: :class:`Doc`</span>
+<span class="sd">     :type doc_tag: ``str``</span>
+<span class="sd">     :type default: ``any``</span>
+<span class="sd">     :type error_on_none: ``bool``</span>
+
+<span class="sd">    The order of preference is local &gt; document &gt; default,</span>
+<span class="sd">    although if a local or document tag returns None, then the next level down is used.</span>
+<span class="sd">    Also, if error_on_none=True and the final variable is None, then a ValueError will be raised</span>
+
+<span class="sd">    In this manner you can set global variables, which can be optionally overriden at a local level.</span>
+<span class="sd">    For example, the two files below show how to apply different styles to docx text:</span>
+
+<span class="sd">    **main.md:**</span>
+
+<span class="sd">    .. code-block:: none</span>
+<span class="sd">        :linenos:</span>
+
+<span class="sd">        ------------------</span>
+<span class="sd">        style-div:</span>
+<span class="sd">            name: MyStyle</span>
+<span class="sd">        ------------------</span>
+
+<span class="sd">        :::style</span>
+<span class="sd">        some text</span>
+<span class="sd">        :::</span>
+
+<span class="sd">        ::: {.style name=MyOtherStyle}</span>
+<span class="sd">        some more text</span>
+<span class="sd">        :::</span>
+
+<span class="sd">    **style_filter.py:**</span>
+
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        :linenos:</span>
+
+<span class="sd">        import panflute as pf</span>
+
+<span class="sd">        def action(elem, doc):</span>
+<span class="sd">            if type(elem) == pf.Div:</span>
+<span class="sd">                style = pf.get_option(elem.attributes, &quot;name&quot;, doc, &quot;style-div.name&quot;)</span>
+<span class="sd">                elem.attributes[&quot;custom-style&quot;] = style</span>
+
+<span class="sd">        def main(doc=None):</span>
+<span class="sd">            return run_filter(action, doc=doc)</span>
+
+<span class="sd">        if __name__ == &quot;__main__&quot;:</span>
+<span class="sd">            main()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">variable</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># element level</span>
+    <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">local_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">local_tag</span> <span class="ow">in</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="n">local_tag</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">local_tag</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">variable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">variable</span>
+
+    <span class="c1"># doc level</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">doc_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">variable</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">doc_tag</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">variable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">variable</span>
+
+    <span class="c1"># default level</span>
+    <span class="n">variable</span> <span class="o">=</span> <span class="n">default</span>
+    <span class="k">if</span> <span class="n">variable</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">error_on_none</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;could not retrieve a value for tag; local=</span><span class="si">{0}</span><span class="s2">, doc=</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">local_tag</span><span class="p">,</span> <span class="n">doc_tag</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">variable</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">panflute</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

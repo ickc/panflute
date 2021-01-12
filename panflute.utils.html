@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.utils module &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="panflute.version module" href="panflute.version.html" />
+    <link rel="prev" title="panflute.tools module" href="panflute.tools.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-panflute.utils">
+<span id="panflute-utils-module"></span><h1>panflute.utils module<a class="headerlink" href="#module-panflute.utils" title="Permalink to this headline">¶</a></h1>
+<p>Auxiliary functions that have no dependencies</p>
+<dl class="py class">
+<dt id="panflute.utils.ContextImport">
+<em class="property">class </em><code class="sig-name descname">ContextImport</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">module</span></em>, <em class="sig-param"><span class="n">extra_dir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#ContextImport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.ContextImport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Import module context manager.
+Temporarily prepends extra dir
+to sys.path and imports the module,</p>
+<dl>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># /path/dir/fi.py</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">ContextImport</span><span class="p">(</span><span class="s1">&#39;/path/dir/fi.py&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">module</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># prepends &#39;/path/dir&#39; to sys.path</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># module = import_module(&#39;fi&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">module</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">ContextImport</span><span class="p">(</span><span class="s1">&#39;dir.fi&#39;</span><span class="p">,</span> <span class="s1">&#39;/path&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">module</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># prepends &#39;/path&#39; to sys.path</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># module = import_module(&#39;dir.fi&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">module</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.check_group">
+<code class="sig-name descname">check_group</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">group</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#check_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.check_group" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.check_type">
+<code class="sig-name descname">check_type</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">oktypes</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#check_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.check_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.check_type_or_value">
+<code class="sig-name descname">check_type_or_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">oktypes</span></em>, <em class="sig-param"><span class="n">okvalue</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#check_type_or_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.check_type_or_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.debug">
+<code class="sig-name descname">debug</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as print, but prints to <code class="docutils literal notranslate"><span class="pre">stderr</span></code>
+(which is not intercepted by Pandoc).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.decode_ica">
+<code class="sig-name descname">decode_ica</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lst</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#decode_ica"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.decode_ica" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.encode_dict">
+<code class="sig-name descname">encode_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span></em>, <em class="sig-param"><span class="n">content</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#encode_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.encode_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.get_caller_name">
+<code class="sig-name descname">get_caller_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#get_caller_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.get_caller_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the calling Element</p>
+<p>This is just the name of the Class of the __init__ calling function</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.load_pandoc_reader_options">
+<code class="sig-name descname">load_pandoc_reader_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#load_pandoc_reader_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.load_pandoc_reader_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve Pandoc Reader options from the environment</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="panflute.utils.load_pandoc_version">
+<code class="sig-name descname">load_pandoc_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/utils.html#load_pandoc_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.utils.load_pandoc_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve Pandoc version tuple from the environment</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Contributing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">panflute</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="panflute.html">panflute package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="panflute.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="panflute.html#module-panflute">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">panflute</a><ul>
+  <li><a href="panflute.html">panflute package</a><ul>
+      <li>Previous: <a href="panflute.tools.html" title="previous chapter">panflute.tools module</a></li>
+      <li>Next: <a href="panflute.version.html" title="next chapter">panflute.version module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

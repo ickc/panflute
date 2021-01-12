@@ -1,0 +1,7 @@
+panflute.table\_elements module
+===============================
+
+.. automodule:: panflute.table_elements
+   :members:
+   :undoc-members:
+   :show-inheritance:

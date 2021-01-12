@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.utils &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for panflute.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Auxiliary functions that have no dependencies</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Imports</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">p</span>
+<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">import_module</span>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Functions</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="decode_ica"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.decode_ica">[docs]</a><span class="k">def</span> <span class="nf">decode_ica</span><span class="p">(</span><span class="n">lst</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;identifier&#39;</span><span class="p">:</span> <span class="n">lst</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="n">lst</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;attributes&#39;</span><span class="p">:</span> <span class="n">lst</span><span class="p">[</span><span class="mi">2</span><span class="p">]}</span></div>
+
+
+<div class="viewcode-block" id="debug"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.debug">[docs]</a><span class="k">def</span> <span class="nf">debug</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Same as print, but prints to ``stderr``</span>
+<span class="sd">    (which is not intercepted by Pandoc).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_caller_name"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.get_caller_name">[docs]</a><span class="k">def</span> <span class="nf">get_caller_name</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;Get the name of the calling Element</span>
+
+<span class="sd">    This is just the name of the Class of the __init__ calling function</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c1"># References:</span>
+    <span class="c1"># https://jugad2.blogspot.com/2015/09/find-caller-and-callers-caller-of.html</span>
+    <span class="c1"># https://stackoverflow.com/a/47956089/3977107</span>
+    <span class="c1"># https://stackoverflow.com/a/11799376/3977107</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">pos</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">callingframe</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;Panflute&#39;</span>
+
+        <span class="k">if</span> <span class="n">callingframe</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_name</span> <span class="o">==</span> <span class="s1">&#39;__init__&#39;</span><span class="p">:</span>
+            <span class="n">class_name</span> <span class="o">=</span> <span class="n">callingframe</span><span class="o">.</span><span class="n">f_locals</span><span class="p">[</span><span class="s1">&#39;self&#39;</span><span class="p">]</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="k">if</span> <span class="s1">&#39;Container&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">class_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">class_name</span></div>
+
+
+<div class="viewcode-block" id="check_type"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.check_type">[docs]</a><span class="k">def</span> <span class="nf">check_type</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="p">):</span>
+    <span class="c1"># This allows &#39;Space&#39; instead of &#39;Space()&#39;</span>
+    <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="c1"># Invalid type</span>
+    <span class="n">caller</span> <span class="o">=</span> <span class="n">get_caller_name</span><span class="p">()</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">Element &quot;</span><span class="si">{}</span><span class="s1">&quot; received &quot;</span><span class="si">{}</span><span class="s1">&quot; but expected </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">caller</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">oktypes</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="check_group"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.check_group">[docs]</a><span class="k">def</span> <span class="nf">check_group</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;element </span><span class="si">{}</span><span class="s1"> not in group </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">group</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="check_type_or_value"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.check_type_or_value">[docs]</a><span class="k">def</span> <span class="nf">check_type_or_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="p">,</span> <span class="n">okvalue</span><span class="p">):</span>
+    <span class="c1"># This allows &#39;Space&#39; instead of &#39;Space()&#39;</span>
+    <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">oktypes</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="n">okvalue</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="c1"># Invalid type</span>
+    <span class="n">caller</span> <span class="o">=</span> <span class="n">get_caller_name</span><span class="p">()</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">Element &quot;</span><span class="si">{}</span><span class="s1">&quot; received &quot;</span><span class="si">{}</span><span class="s1">&quot; but expected </span><span class="si">{}</span><span class="s1"> or </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">caller</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">oktypes</span><span class="p">,</span> <span class="n">okvalue</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="encode_dict"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.encode_dict">[docs]</a><span class="k">def</span> <span class="nf">encode_dict</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="n">tag</span><span class="p">,</span>
+        <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">content</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="load_pandoc_version"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.load_pandoc_version">[docs]</a><span class="k">def</span> <span class="nf">load_pandoc_version</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve Pandoc version tuple from the environment</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;PANDOC_VERSION&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Environment variable PANDOC_VERSION is malformed, ignoring...&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_pandoc_reader_options"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.load_pandoc_reader_options">[docs]</a><span class="k">def</span> <span class="nf">load_pandoc_reader_options</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve Pandoc Reader options from the environment</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># TODO? make option names pythonic (&#39;readerIndentedCodeClasses&#39; -&gt; &#39;indented_code_classes&#39;)</span>
+        <span class="c1"># TODO? replace list with set (readerAbbreviations)</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;PANDOC_READER_OPTIONS&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">options</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+        <span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Environment variable PANDOC_READER_OPTIONS is malformed, ignoring...&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">()</span></div>
+
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Classes</span>
+<span class="c1"># ---------------------------</span>
+
+<div class="viewcode-block" id="ContextImport"><a class="viewcode-back" href="../../panflute.utils.html#panflute.utils.ContextImport">[docs]</a><span class="k">class</span> <span class="nc">ContextImport</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Import module context manager.</span>
+<span class="sd">    Temporarily prepends extra dir</span>
+<span class="sd">    to sys.path and imports the module,</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # /path/dir/fi.py</span>
+<span class="sd">        &gt;&gt;&gt; with ContextImport(&#39;/path/dir/fi.py&#39;) as module:</span>
+<span class="sd">        &gt;&gt;&gt;     # prepends &#39;/path/dir&#39; to sys.path</span>
+<span class="sd">        &gt;&gt;&gt;     # module = import_module(&#39;fi&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;     module.main()</span>
+<span class="sd">        &gt;&gt;&gt; with ContextImport(&#39;dir.fi&#39;, &#39;/path&#39;) as module:</span>
+<span class="sd">        &gt;&gt;&gt;     # prepends &#39;/path&#39; to sys.path</span>
+<span class="sd">        &gt;&gt;&gt;     # module = import_module(&#39;dir.fi&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;     module.main()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">extra_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param module: str</span>
+<span class="sd">            module spec for import or file path</span>
+<span class="sd">            from that only basename without .py is used</span>
+<span class="sd">        :param extra_dir: str or None</span>
+<span class="sd">            extra dir to prepend to sys.path</span>
+<span class="sd">            if module then doesn&#39;t change sys.path if None</span>
+<span class="sd">            if file then prepends dir if None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">remove_py</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">s</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">remove_py</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">module</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">extra_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">module</span> <span class="o">!=</span> <span class="n">p</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">module</span><span class="p">)):</span>
+            <span class="n">extra_dir</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extra_dir</span> <span class="o">=</span> <span class="n">extra_dir</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_dir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">import_module</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">panflute</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>panflute.base module &#8212; panflute 2.0.5 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="panflute.containers module" href="panflute.containers.html" />
+    <link rel="prev" title="panflute.autofilter module" href="panflute.autofilter.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-panflute.base">
+<span id="panflute-base-module"></span><h1>panflute.base module<a class="headerlink" href="#module-panflute.base" title="Permalink to this headline">¶</a></h1>
+<p>Base classes and methods of all Pandoc elements</p>
+<dl class="py class">
+<dt id="panflute.base.Block">
+<em class="property">class </em><code class="sig-name descname">Block</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/base.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.base.Block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>Base class of all block elements</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.base.Element">
+<em class="property">class </em><code class="sig-name descname">Element</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/base.html#Element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.base.Element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class of all Pandoc elements</p>
+<dl class="py method">
+<dt id="panflute.base.Element.ancestor">
+<code class="sig-name descname">ancestor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/base.html#Element.ancestor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.base.Element.ancestor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the n-th ancestor.
+Note that <code class="docutils literal notranslate"><span class="pre">elem.ancestor(1)</span> <span class="pre">==</span> <span class="pre">elem.parent</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> | <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.container">
+<em class="property">property </em><code class="sig-name descname">container</code><a class="headerlink" href="#panflute.base.Element.container" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rarely used attribute that returns the <code class="docutils literal notranslate"><span class="pre">ListContainer</span></code> or
+<code class="docutils literal notranslate"><span class="pre">DictContainer</span></code> that contains the element
+(or returns None if no such container exist)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">ListContainer</span></code> | <code class="docutils literal notranslate"><span class="pre">DictContainer</span></code> | <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.content">
+<em class="property">property </em><code class="sig-name descname">content</code><a class="headerlink" href="#panflute.base.Element.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sequence of <a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects (usually either <a class="reference internal" href="#panflute.base.Block" title="panflute.base.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></a>
+or <a class="reference internal" href="#panflute.base.Inline" title="panflute.base.Inline"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inline</span></code></a>) that are “children” of the current element.</p>
+<p>Only available for elements that accept <code class="docutils literal notranslate"><span class="pre">*args</span></code>.</p>
+<p>Note: some elements have children in attributes other than <code class="docutils literal notranslate"><span class="pre">content</span></code>
+(such as <a class="reference internal" href="panflute.table_elements.html#panflute.table_elements.Table" title="panflute.table_elements.Table"><code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code></a> that has children in the header and
+caption attributes).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.doc">
+<em class="property">property </em><code class="sig-name descname">doc</code><a class="headerlink" href="#panflute.base.Element.doc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the root Doc element (if there is one)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.index">
+<em class="property">property </em><code class="sig-name descname">index</code><a class="headerlink" href="#panflute.base.Element.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return position of element inside the parent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">int</span></code> | <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.base.Element.location">
+<code class="sig-name descname">location</code><a class="headerlink" href="#panflute.base.Element.location" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.next">
+<em class="property">property </em><code class="sig-name descname">next</code><a class="headerlink" href="#panflute.base.Element.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the next sibling.
+Note that <code class="docutils literal notranslate"><span class="pre">elem.offset(1)</span> <span class="pre">==</span> <span class="pre">elem.next</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> | <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.offset">
+<code class="sig-name descname">offset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/base.html#Element.offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.base.Element.offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a sibling element offset by n</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> | <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="panflute.base.Element.parent">
+<code class="sig-name descname">parent</code><a class="headerlink" href="#panflute.base.Element.parent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.prev">
+<em class="property">property </em><code class="sig-name descname">prev</code><a class="headerlink" href="#panflute.base.Element.prev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the previous sibling.
+Note that <code class="docutils literal notranslate"><span class="pre">elem.offset(-1)</span> <span class="pre">==</span> <span class="pre">elem.prev</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> | <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.replace_keyword">
+<code class="sig-name descname">replace_keyword</code><span class="sig-paren">(</span><em class="sig-param">keyword</em>, <em class="sig-param">replacement</em><span class="optional">[</span>, <em class="sig-param">count</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#panflute.base.Element.replace_keyword" title="Permalink to this definition">¶</a></dt>
+<dd><p>Walk through the element and its children
+and look for Str() objects that contains
+exactly the keyword. Then, replace it.</p>
+<p>Usually applied to an entire document (a <a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a> element)</p>
+<p>Note: If the replacement is a block, it cannot be put in place of
+a Str element. As a solution, the closest ancestor (e.g. the parent)
+will be replaced instead, but only if possible
+(if the parent only has one child).</p>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p1</span> <span class="o">=</span> <span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;Spam&#39;</span><span class="p">),</span> <span class="n">Space</span><span class="p">,</span> <span class="n">Emph</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;and&#39;</span><span class="p">),</span> <span class="n">Space</span><span class="p">,</span> <span class="n">Str</span><span class="p">(</span><span class="s1">&#39;eggs&#39;</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p2</span> <span class="o">=</span> <span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;eggs&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p3</span> <span class="o">=</span> <span class="n">Plain</span><span class="p">(</span><span class="n">Emph</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;eggs&#39;</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">Doc</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span><span class="o">.</span><span class="n">content</span>
+<span class="go">ListContainer(Para(Str(Spam) Space Emph(Str(and) Space Str(eggs))) Para(Str(eggs)) Plain(Emph(Str(eggs))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span><span class="o">.</span><span class="n">replace_keyword</span><span class="p">(</span><span class="s1">&#39;eggs&#39;</span><span class="p">,</span> <span class="n">Str</span><span class="p">(</span><span class="s1">&#39;ham&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span><span class="o">.</span><span class="n">content</span>
+<span class="go">ListContainer(Para(Str(Spam) Space Emph(Str(and) Space Str(ham))) Para(Str(ham)) Plain(Emph(Str(ham))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span><span class="o">.</span><span class="n">replace_keyword</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s1">&#39;ham&#39;</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;spam&#39;</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span><span class="o">.</span><span class="n">content</span>
+<span class="go">ListContainer(Para(Str(Spam) Space Emph(Str(and) Space Str(ham))) Para(Str(spam)) Para(Str(spam)))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keyword</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – string that will be searched (cannot have spaces!)</p></li>
+<li><p><strong>replacement</strong> (<a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>) – element that will be placed in turn of the <code class="docutils literal notranslate"><span class="pre">Str</span></code>
+element that contains the keyword.</p></li>
+<li><p><strong>count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – number of occurrences that will be replaced.
+If count is not given or is set to zero, all occurrences
+will be replaced.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.tag">
+<em class="property">property </em><code class="sig-name descname">tag</code><a class="headerlink" href="#panflute.base.Element.tag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/base.html#Element.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.base.Element.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="panflute.base.Element.walk">
+<code class="sig-name descname">walk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/base.html#Element.walk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.base.Element.walk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Walk through the element and all its children (sub-elements),
+applying the provided function <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p>
+<p>A trivial example would be:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">panflute</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span> <span class="nf">no_action</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">Doc</span><span class="p">(</span><span class="n">Para</span><span class="p">(</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)))</span>
+<span class="n">altered</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">no_action</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">function</span></code>) – function that takes (element, doc) as arguments.</p></li>
+<li><p><strong>doc</strong> (<a class="reference internal" href="panflute.elements.html#panflute.elements.Doc" title="panflute.elements.Doc"><code class="xref py py-class docutils literal notranslate"><span class="pre">Doc</span></code></a>) – root document; used to access metadata,
+the output format (in <code class="docutils literal notranslate"><span class="pre">.format</span></code>, other elements, and
+other variables). Only use this variable if for some reason
+you don’t want to use the current document of an element.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> | <code class="docutils literal notranslate"><span class="pre">[]</span></code> | <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.base.Inline">
+<em class="property">class </em><code class="sig-name descname">Inline</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/base.html#Inline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.base.Inline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>Base class of all inline elements</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="panflute.base.MetaValue">
+<em class="property">class </em><code class="sig-name descname">MetaValue</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/panflute/base.html#MetaValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#panflute.base.MetaValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#panflute.base.Element" title="panflute.base.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">panflute.base.Element</span></code></a></p>
+<p>Base class of all metadata elements</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="index.html">
+    <img class="logo" src="http://scorreia.com/images/software/2.jpg" title="written with a few of these"/>
+  </a>
+</p>
+
+<p>
+  <iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;repo=panflute&amp;type=watch&amp;count=true&amp;size=large"
+    allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+<p>Panflute is a Python package to easily write Pandoc filters.</p>
+<p>It is pythonic and comes with batteries included.</p>
+
+<h3>Stay Informed</h3>
+
+<p><a href="https://github.com/sergiocorreia/panflute/issues">Report issues or send suggestions</a>.</p>
+
+<p><iframe src="http://ghbtns.com/github-btn.html?user=sergiocorreia&amp;type=follow&amp;count=false"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200" height="20"></iframe></p>
+
+<p>More projects by <a href="http://scorreia.com/">Sergio Correia</a> <a href="http://scorreia.com/software/">here</a>.</p>
+
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Panflute API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Contributing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">panflute</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="panflute.html">panflute package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="panflute.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="panflute.html#module-panflute">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">panflute</a><ul>
+  <li><a href="panflute.html">panflute package</a><ul>
+      <li>Previous: <a href="panflute.autofilter.html" title="previous chapter">panflute.autofilter module</a></li>
+      <li>Next: <a href="panflute.containers.html" title="next chapter">panflute.containers module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
